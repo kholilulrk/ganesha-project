@@ -15,6 +15,7 @@ class ShoppingItem extends Model
         'unit',
         'is_checked',
         'notes',
+        'price',
         'image',
         'checked_by',
     ];
@@ -24,6 +25,7 @@ class ShoppingItem extends Model
         return [
             'is_checked' => 'boolean',
             'qty' => 'integer',
+            'price' => 'integer',
         ];
     }
 
@@ -40,5 +42,10 @@ class ShoppingItem extends Model
     public function imageUrl(): ?string
     {
         return $this->image ? Storage::url($this->image) : null;
+    }
+
+    public function priceFormatted(): ?string
+    {
+        return $this->price ? 'Rp ' . number_format($this->price, 0, ',', '.') : null;
     }
 }

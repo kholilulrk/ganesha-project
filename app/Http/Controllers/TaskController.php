@@ -241,6 +241,7 @@ class TaskController extends Controller
             'qty' => ['required', 'integer', 'min:1'],
             'unit' => ['nullable', 'string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'price' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $item = $task->shoppingItems()->create($validated);
@@ -249,8 +250,9 @@ class TaskController extends Controller
             $item->load('checker');
             $total = $task->shoppingItems()->count();
             $checked = $task->shoppingItems()->where('is_checked', true)->count();
+            $totalPrice = $task->shoppingItems()->get()->sum(fn($i) => ($i->price ?? 0) * $i->qty);
             $html = view('tasks.partials._shopping_item', compact('item', 'task'))->render();
-            return response()->json(['success' => true, 'html' => $html, 'total' => $total, 'checked' => $checked]);
+            return response()->json(['success' => true, 'html' => $html, 'total' => $total, 'checked' => $checked, 'total_price' => $totalPrice]);
         }
 
         return redirect()->route('tasks.show', $task)->with('success', 'Item added to shopping list.');
@@ -270,12 +272,14 @@ class TaskController extends Controller
             $item->load('checker');
             $total = $task->shoppingItems()->count();
             $checked = $task->shoppingItems()->where('is_checked', true)->count();
+            $totalPrice = $task->shoppingItems()->get()->sum(fn($i) => ($i->price ?? 0) * $i->qty);
             return response()->json([
                 'success' => true,
                 'is_checked' => $item->is_checked,
                 'checked_by' => $item->checker?->name,
                 'total' => $total,
                 'checked' => $checked,
+                'total_price' => $totalPrice,
             ]);
         }
 
@@ -291,14 +295,16 @@ class TaskController extends Controller
             'qty' => ['required', 'integer', 'min:1'],
             'unit' => ['nullable', 'string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'price' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $item->update($validated);
 
         if ($request->expectsJson()) {
             $item->load('checker');
+            $totalPrice = $task->shoppingItems()->get()->sum(fn($i) => ($i->price ?? 0) * $i->qty);
             $html = view('tasks.partials._shopping_item', compact('item', 'task'))->render();
-            return response()->json(['success' => true, 'html' => $html]);
+            return response()->json(['success' => true, 'html' => $html, 'total_price' => $totalPrice]);
         }
 
         return redirect()->route('tasks.show', $task)->with('success', 'Shopping item updated.');
@@ -322,7 +328,8 @@ class TaskController extends Controller
         if ($request->expectsJson()) {
             $total = $task->shoppingItems()->count();
             $checked = $task->shoppingItems()->where('is_checked', true)->count();
-            return response()->json(['success' => true, 'total' => $total, 'checked' => $checked]);
+            $totalPrice = $task->shoppingItems()->get()->sum(fn($i) => ($i->price ?? 0) * $i->qty);
+            return response()->json(['success' => true, 'total' => $total, 'checked' => $checked, 'total_price' => $totalPrice]);
         }
 
         return redirect()->route('tasks.show', $task)->with('success', 'Shopping item removed.');
