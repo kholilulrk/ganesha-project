@@ -89,37 +89,59 @@
                 </div>
                 @endif
 
-                {{-- Pekerjaan --}}
-                <a href="{{ route('tasks.index') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 ease-in-out
-                          {{ request()->routeIs('tasks.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-100 hover:text-white hover:bg-white/10' }}">
-                    <svg class="w-5 h-5 shrink-0" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <span class="flex-1">Pekerjaan</span>
-                    @php $role = $user->getRoleNames()->first(); @endphp
-                    @if($user->hasRole('teknisi'))
-                        @php
-                            $taskCount = \App\Models\Task::where(function ($q) use ($user, $role) {
-                                $q->whereHas('assignedUsers', fn($sub) => $sub->where('user_id', $user->id))
-                                  ->orWhere('assigned_role', $role)
-                                  ->orWhere(function ($sub) {
-                                      $sub->whereDoesntHave('assignedUsers')->whereNull('assigned_role');
-                                  });
-                            })->whereIn('status', ['pending', 'progress'])->count();
-                        @endphp
-                        @if($taskCount > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-400/20 text-red-200">{{ $taskCount }}</span>
+                {{-- Pekerjaan (dropdown) --}}
+                @php $pekerjaanActive = request()->routeIs('tasks.*') || request()->routeIs('work-documents.*'); @endphp
+                <div x-data="{ open: @json($pekerjaanActive) }">
+                    <button @click.prevent="open = !open"
+                            class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 ease-in-out
+                                   {{ $pekerjaanActive ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-100 hover:text-white hover:bg-white/10' }}">
+                        <svg class="w-5 h-5 shrink-0" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span class="flex-1 text-left">Pekerjaan</span>
+                        <svg class="w-4 h-4 transition-transform duration-200 text-indigo-300" :class="{ 'rotate-90': open }" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="ml-6 mt-1 space-y-1">
+                        <a href="{{ route('tasks.index') }}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out
+                                  {{ request()->routeIs('tasks.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-200 hover:text-white hover:bg-white/10' }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                            <span class="flex-1">Data Pekerjaan</span>
+                            @php $role = $user->getRoleNames()->first(); @endphp
+                            @if($user->hasRole('teknisi'))
+                                @php
+                                    $taskCount = \App\Models\Task::where(function ($q) use ($user, $role) {
+                                        $q->whereHas('assignedUsers', fn($sub) => $sub->where('user_id', $user->id))
+                                          ->orWhere('assigned_role', $role)
+                                          ->orWhere(function ($sub) {
+                                              $sub->whereDoesntHave('assignedUsers')->whereNull('assigned_role');
+                                          });
+                                    })->whereIn('status', ['pending', 'progress'])->count();
+                                @endphp
+                                @if($taskCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-400/20 text-red-200">{{ $taskCount }}</span>
+                                @endif
+                            @elseif($user->hasRole('logistic'))
+                                @php
+                                    $shoppingCount = \App\Models\Task::whereHas('shoppingItems', fn($q) => $q->where('is_checked', false))->count();
+                                @endphp
+                                @if($shoppingCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-200">{{ $shoppingCount }}</span>
+                                @endif
+                            @endif
+                        </a>
+                        @if($user->hasAnyRole(['super_admin', 'administrasi']))
+                        <a href="{{ route('work-documents.index') }}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out
+                                  {{ request()->routeIs('work-documents.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-200 hover:text-white hover:bg-white/10' }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                            <span class="flex-1">Kelengkapan Pekerjaan</span>
+                        </a>
                         @endif
-                    @elseif($user->hasRole('logistic'))
-                        @php
-                            $shoppingCount = \App\Models\Task::whereHas('shoppingItems', fn($q) => $q->where('is_checked', false))->count();
-                        @endphp
-                        @if($shoppingCount > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-200">{{ $shoppingCount }}</span>
-                        @endif
-                    @endif
-                </a>
+                    </div>
+                </div>
 
                 {{-- Documents --}}
                 <a href="{{ route('documents.index') }}"

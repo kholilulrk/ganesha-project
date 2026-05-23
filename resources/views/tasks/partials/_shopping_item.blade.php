@@ -12,7 +12,7 @@
     imgLoading: false,
     uploadImage(e) {
         e.preventDefault();
-        const form = this.$el.querySelector("form");
+        const form = e.currentTarget.closest("form") || this.$el.querySelector("form");
         if (!form) return;
         this.imgLoading = true;
         const fd = new FormData(form);
@@ -149,9 +149,7 @@
         <div class="flex flex-wrap items-center gap-2">
         <a :href="imageUrl" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-md text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Lihat</a>
         <a :href="imageUrl" download class="inline-flex items-center px-3 py-1.5 bg-green-50 border border-green-200 rounded-md text-xs font-semibold text-green-700 hover:bg-green-100">Download</a>
-        @if (!auth()->user()->hasRole('logistic'))
         <button @click.prevent="deleteImage()" class="inline-flex items-center px-3 py-1.5 bg-red-50 border border-red-200 rounded-md text-xs font-semibold text-red-700 hover:bg-red-100">Hapus</button>
-        @endif
         </div>
         </template>
         <form method="POST" action="{{ route('tasks.shopping-items.image', [$task, $item]) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">

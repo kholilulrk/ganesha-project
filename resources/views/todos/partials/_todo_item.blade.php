@@ -1,4 +1,4 @@
-<div x-data='{
+<div id="todo-{{ $todo->id }}" x-data='{
     status: @json($todo->status),
     loading: false,
     toggleStatus() {
@@ -27,15 +27,19 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                this.$el.remove();
+                let el = document.getElementById("todo-{{ $todo->id }}");
+                if (el) el.remove();
+                this.loading = false;
                 let container = document.getElementById("todos-container");
-                if (container.children.length === 0) {
-                    document.getElementById("todos-empty").classList.remove("hidden");
+                if (container && container.children.length === 0) {
+                    let empty = document.getElementById("todos-empty");
+                    if (empty) empty.classList.remove("hidden");
                 }
+            } else {
+                this.loading = false;
             }
-            this.loading = false;
         })
-        .catch(() => this.loading = false);
+        .catch(() => location.reload());
     }
 }' class="todo-item" x-bind:class="status === 'done' ? 'opacity-60' : ''">
     <div class="flex items-center justify-between px-6 py-4">

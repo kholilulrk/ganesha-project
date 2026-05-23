@@ -211,10 +211,10 @@
         </div>
 
         <div x-show="showImages" x-collapse.duration.200ms class="mt-3">
-            <div id="img-grid-{{ $item->id }}" class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1">
+            <div id="img-grid-{{ $item->id }}" class="flex flex-wrap gap-2">
                 @foreach ($item->images as $img)
                 <div id="teknisi-img-{{ $img->id }}" class="relative group">
-                    <button @click.prevent="previewUrl = '{{ $img->imageUrl() }}'" class="block w-full aspect-square rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button @click.prevent="previewUrl = '{{ $img->imageUrl() }}'" class="block w-20 h-20 rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                         <img src="{{ $img->imageUrl() }}" alt="Gambar" class="w-full h-full object-cover">
                     </button>
                     @if (auth()->user()->hasAnyRole(['super_admin', 'administrasi', 'teknisi']))

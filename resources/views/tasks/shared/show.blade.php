@@ -101,31 +101,6 @@
                     </div>
                     @endif
 
-                    @if ($task->attachments->isNotEmpty())
-                    <div class="pt-4 border-t mt-4">
-                        <h3 class="text-sm font-semibold text-gray-500 mb-3">Lampiran Dokumen ({{ $task->attachments->count() }})</h3>
-                        <div class="space-y-2">
-                            @foreach ($task->attachments as $attachment)
-                                <div class="flex items-center gap-3 bg-gray-50 rounded-md px-4 py-2 text-sm">
-                                    @if ($attachment->isImage())
-                                        <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                    @elseif ($attachment->isPdf())
-                                        <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                        </svg>
-                                    @endif
-                                    <a href="{{ $attachment->url() }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 truncate">{{ basename($attachment->file) }}</a>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
                 </div>
 
                 {{-- Card 2: Checklist Pekerjaan Teknisi --}}
@@ -174,10 +149,10 @@
                                         </button>
 
                                         <div x-show="showImages[{{ $item->id }}]" x-collapse.duration.200ms class="mt-2">
-                                            <div class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-1">
+                                            <div class="flex flex-wrap gap-2">
                                                 @foreach ($item->images as $img)
                                                 <div class="relative group">
-                                                    <button @click.prevent="previewUrl = '{{ $img->imageUrl() }}'" class="block w-full aspect-square rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                                                    <button @click.prevent="previewUrl = '{{ $img->imageUrl() }}'" class="block w-20 h-20 rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                                                         <img src="{{ $img->imageUrl() }}" alt="Gambar" class="w-full h-full object-cover">
                                                     </button>
                                                 </div>

@@ -9,6 +9,7 @@ use App\Http\Controllers\LetterActivePeriodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\WorkDocumentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -34,16 +35,12 @@ Route::middleware('auth')->group(function () {
         Route::get('tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit')->middleware('permission:task-edit');
         Route::patch('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update')->middleware('permission:task-edit');
         Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')->middleware('permission:task-delete');
-        Route::post('tasks/{task}/attachments', [TaskController::class, 'uploadAttachment'])->name('tasks.attachments.upload');
-        Route::delete('tasks/attachments/{attachment}', [TaskController::class, 'destroyAttachment'])->name('tasks.attachments.destroy');
         Route::post('tasks/{task}/shopping-items', [TaskController::class, 'storeShoppingItem'])->name('tasks.shopping-items.store');
         Route::patch('tasks/{task}/shopping-items/{item}/toggle', [TaskController::class, 'toggleShoppingItem'])->name('tasks.shopping-items.toggle');
         Route::post('tasks/{task}/shopping-items/{item}/image', [TaskController::class, 'uploadShoppingItemImage'])->name('tasks.shopping-items.image');
         Route::delete('tasks/{task}/shopping-items/{item}/image', [TaskController::class, 'destroyShoppingItemImage'])->name('tasks.shopping-items.image.destroy');
         Route::patch('tasks/{task}/shopping-items/{item}', [TaskController::class, 'updateShoppingItem'])->name('tasks.shopping-items.update');
         Route::delete('tasks/{task}/shopping-items/{item}', [TaskController::class, 'destroyShoppingItem'])->name('tasks.shopping-items.destroy');
-        Route::post('tasks/{task}/work-reports', [TaskController::class, 'storeWorkReport'])->name('tasks.work-reports.store');
-        Route::delete('tasks/{task}/work-reports/{report}', [TaskController::class, 'destroyWorkReport'])->name('tasks.work-reports.destroy');
         Route::patch('tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status.update');
         Route::post('tasks/{task}/teknisi-items', [TaskController::class, 'storeTeknisiTaskItem'])->name('tasks.teknisi-items.store');
         Route::patch('tasks/{task}/teknisi-items/{item}/toggle', [TaskController::class, 'toggleTeknisiTaskItem'])->name('tasks.teknisi-items.toggle');
@@ -92,6 +89,14 @@ Route::middleware('auth')->group(function () {
         Route::get('letter-active-periods/{letterActivePeriod}/edit', [LetterActivePeriodController::class, 'edit'])->name('letter-active-periods.edit');
         Route::patch('letter-active-periods/{letterActivePeriod}', [LetterActivePeriodController::class, 'update'])->name('letter-active-periods.update');
         Route::delete('letter-active-periods/{letterActivePeriod}', [LetterActivePeriodController::class, 'destroy'])->name('letter-active-periods.destroy');
+    });
+
+    Route::middleware(['role:super_admin|administrasi'])->group(function () {
+        Route::get('work-documents', [WorkDocumentController::class, 'index'])->name('work-documents.index');
+        Route::post('work-documents', [WorkDocumentController::class, 'store'])->name('work-documents.store');
+        Route::get('work-documents/{task}/document', [WorkDocumentController::class, 'getDocument'])->name('work-documents.document');
+        Route::delete('work-documents/{task}', [WorkDocumentController::class, 'destroy'])->name('work-documents.destroy');
+        Route::delete('work-documents/{task}/file', [WorkDocumentController::class, 'destroyFile'])->name('work-documents.file.destroy');
     });
 
     Route::middleware(['role:super_admin'])->prefix('admin')->name('admin.')->group(function () {

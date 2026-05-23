@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\ShoppingItem;
 use App\Models\Task;
-use App\Models\TaskAttachment;
 use App\Models\TaskComment;
 use App\Models\TeknisiTaskItem;
 use App\Models\TeknisiTaskItemImage;
 use App\Models\User;
-use App\Models\WorkReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -234,39 +232,6 @@ class TaskController extends Controller
         return redirect()->route('tasks.index')->with('success', 'Task deleted successfully.');
     }
 
-    public function uploadAttachment(Request $request, Task $task): RedirectResponse
-    {
-        $this->authorizeAccess($task);
-
-        $request->validate([
-            'file' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,xls,xlsx,doc,docx'],
-        ]);
-
-        $file = $request->file('file');
-        $path = $file->store('attachments/' . $task->id, 'public');
-
-        TaskAttachment::create([
-            'task_id' => $task->id,
-            'file' => $path,
-            'file_type' => $file->getMimeType(),
-            'uploaded_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('tasks.show', $task)->with('success', 'File uploaded successfully.');
-    }
-
-    public function destroyAttachment(TaskAttachment $attachment): RedirectResponse
-    {
-        $task = $attachment->task;
-
-        $this->authorizeAccess($task);
-
-        Storage::disk('public')->delete($attachment->file);
-        $attachment->delete();
-
-        return redirect()->route('tasks.show', $task)->with('success', 'File deleted successfully.');
-    }
-
     public function storeShoppingItem(Request $request, Task $task)
     {
         $this->authorizeAccess($task);
@@ -367,13 +332,6 @@ class TaskController extends Controller
     {
         $this->authorizeAccess($task);
 
-        if (auth()->user()->hasRole('logistic')) {
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Logistic tidak bisa menghapus gambar.'], 403);
-            }
-            abort(403, 'Logistic tidak bisa menghapus gambar.');
-        }
-
         if ($item->image) {
             Storage::disk('public')->delete($item->image);
             $item->update(['image' => null]);
@@ -410,33 +368,6 @@ class TaskController extends Controller
         }
 
         return redirect()->route('tasks.show', $task)->with('success', 'Gambar barang berhasil diupload.');
-    }
-
-    public function storeWorkReport(Request $request, Task $task): RedirectResponse
-    {
-        $this->authorizeAccess($task);
-
-        $validated = $request->validate([
-            'description' => ['required', 'string'],
-            'status' => ['required', 'in:pending,progress,done,cancelled'],
-        ]);
-
-        $task->workReports()->create([
-            'description' => $validated['description'],
-            'status' => $validated['status'],
-            'created_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('tasks.show', $task)->with('success', 'Work report added.');
-    }
-
-    public function destroyWorkReport(Task $task, WorkReport $report): RedirectResponse
-    {
-        $this->authorizeAccess($task);
-
-        $report->delete();
-
-        return redirect()->route('tasks.show', $task)->with('success', 'Work report removed.');
     }
 
     public function storeTeknisiTaskItem(Request $request, Task $task)

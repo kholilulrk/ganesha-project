@@ -256,7 +256,7 @@
                                 imgLoading: false,
                                 uploadImage(e) {
                                     e.preventDefault();
-                                    const form = this.$el.querySelector("form");
+                                    const form = e.currentTarget;
                                     if (!form) return;
                                     this.imgLoading = true;
                                     const fd = new FormData(form);
@@ -399,11 +399,9 @@
                                             <button @click.prevent="previewUrl = imageUrl" class="block w-full h-full rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                                                 <img :src="imageUrl" alt="Gambar" class="w-full h-full object-cover">
                                             </button>
-                                            @if (!auth()->user()->hasRole('logistic'))
                                             <button @click.prevent="deleteImage()" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-red-600 opacity-100">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             </button>
-                                            @endif
                                         </div>
                                         <form @submit.prevent="uploadImage" method="POST" action="{{ route('tasks.shopping-items.image', [$task, $item]) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
                                             @csrf
@@ -489,109 +487,6 @@
                 @endif
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 space-y-6">
-
-                @if (auth()->user()->hasAnyRole(['super_admin', 'administrasi', 'teknisi', 'logistic']))
-                <div class="pt-4 border-t">
-                    <h3 class="text-sm font-semibold text-gray-500 mb-3">Work Reports ({{ $task->workReports->count() }})</h3>
-
-                    @if ($task->workReports->isNotEmpty())
-                        <div class="space-y-3 mb-4">
-                            @foreach ($task->workReports as $report)
-                                <div class="bg-gray-50 rounded-md px-4 py-3 text-sm">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-gray-800">{{ $report->description }}</p>
-                                            <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                                <span>by {{ $report->creator?->name }}</span>
-                                                <span>{{ $report->created_at->format('d M Y H:i') }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 shrink-0 ml-3">
-                                            <span class="px-2 py-0.5 text-xs rounded-full
-                                                @if($report->status === 'pending') bg-gray-100 text-gray-600
-                                                @elseif($report->status === 'progress') bg-yellow-100 text-yellow-700
-                                                @elseif($report->status === 'done') bg-green-100 text-green-700
-                                                @else bg-red-100 text-red-700 @endif">
-                                                {{ ucfirst($report->status) }}
-                                            </span>
-                                            <form x-data="{ loading: false }" x-on:submit="if(confirm('Delete this report?')) loading = true; else $event.preventDefault()" action="{{ route('tasks.work-reports.destroy', [$task, $report]) }}" method="POST">
-                                                @csrf @method('DELETE')
-                                                <button x-bind:disabled="loading" type="submit" class="text-red-500 hover:text-red-700 text-xs">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-400 mb-4">No work reports yet.</p>
-                    @endif
-
-                    <form x-data="{ loading: false }" x-on:submit="loading = true" method="POST" action="{{ route('tasks.work-reports.store', $task) }}" class="space-y-2">
-                        @csrf
-                        <textarea name="description" rows="3" placeholder="Describe your work..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" required></textarea>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <select name="status" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm w-full sm:w-auto">
-                                <option value="pending">Pending</option>
-                                <option value="progress">Progress</option>
-                                <option value="done">Done</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <x-primary-button class="text-xs w-full sm:w-auto">Submit Report</x-primary-button>
-                        </div>
-                    </form>
-                    <x-input-error :messages="$errors->get('description')" class="mt-2" />
-                </div>
-                @endif
-
-                <div class="pt-4 border-t">
-                    <h3 class="text-sm font-semibold text-gray-500 mb-3">Attachments ({{ $task->attachments->count() }})</h3>
-
-                    @if ($task->attachments->isNotEmpty())
-                        <div class="space-y-2 mb-4">
-                            @foreach ($task->attachments as $attachment)
-                                <div class="flex items-center justify-between bg-gray-50 rounded-md px-4 py-2 text-sm">
-                                    <div class="flex items-center gap-3 min-w-0">
-                                        @if ($attachment->isImage())
-                                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
-                                        @elseif ($attachment->isPdf())
-                                            <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                            </path>
-                                        </svg>
-                                        @else
-                                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                            </path>
-                                        @endif
-                                        <a href="{{ $attachment->url() }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 truncate">
-                                            {{ basename($attachment->file) }}
-                                        </a>
-                                        <span class="text-xs text-gray-400">by {{ $attachment->uploader?->name }}</span>
-                                    </div>
-                                    <form x-data="{ loading: false }" x-on:submit="if(confirm('Delete this file?')) loading = true; else $event.preventDefault()" action="{{ route('tasks.attachments.destroy', $attachment) }}" method="POST" class="shrink-0">
-                                        @csrf @method('DELETE')
-                                        <button x-bind:disabled="loading" type="submit" class="text-red-500 hover:text-red-700 text-xs">Delete</button>
-                                    </form>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-400 mb-4">No attachments yet.</p>
-                    @endif
-
-                    <form x-data="{ loading: false }" x-on:submit="loading = true" method="POST" action="{{ route('tasks.attachments.upload', $task) }}" enctype="multipart/form-data">
-                        @csrf
-                        <div class="flex items-center gap-3">
-                            <input type="file" name="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
-                            <x-primary-button>Upload</x-primary-button>
-                        </div>
-                        <x-input-error :messages="$errors->get('file')" class="mt-2" />
-                        <p class="text-xs text-gray-400 mt-1">Max 10MB. Allowed: jpg, png, gif, pdf, xls, xlsx, doc, docx</p>
-                    </form>
-                </div>
 
                 @php $topComments = $task->comments->where('parent_id', null); @endphp
                 <div class="pt-4 border-t">
