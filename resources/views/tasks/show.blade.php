@@ -256,23 +256,40 @@
                                 imgLoading: false,
                                 uploadImage(e) {
                                     e.preventDefault();
+                                    const form = this.$el.querySelector("form");
+                                    if (!form) return;
                                     this.imgLoading = true;
-                                    let form = e.target;
-                                    let data = new FormData(form);
+                                    const fd = new FormData(form);
                                     fetch(form.action, {
                                         method: "POST",
                                         headers: { "Accept": "application/json" },
-                                        body: data
+                                        body: fd
+                                    })
+                                    .then(r => r.json())
+                                    .then(res => {
+                                        if (res.success) {
+                                            this.imageUrl = res.image_url;
+                                            this.hasImage = res.has_image;
+                                        }
+                                        this.imgLoading = false;
+                                    })
+                                    .catch(() => { this.imgLoading = false; });
+                                },
+                                deleteImage() {
+                                    if (!confirm("Hapus gambar ini?")) return;
+                                    fetch("{{ route("tasks.shopping-items.image.destroy", [$task, $item]) }}", {
+                                        method: "POST",
+                                        headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Accept": "application/json", "Content-Type": "application/json" },
+                                        body: JSON.stringify({ _method: "DELETE" })
                                     })
                                     .then(r => r.json())
                                     .then(data => {
                                         if (data.success) {
-                                            this.imageUrl = data.image_url;
-                                            this.hasImage = data.has_image;
+                                            this.imageUrl = null;
+                                            this.hasImage = false;
                                         }
-                                        this.imgLoading = false;
                                     })
-                                    .catch(() => this.imgLoading = false);
+                                    .catch(() => location.reload());
                                 },
                                 toggle() {
                                     this.loading = true;
@@ -382,6 +399,11 @@
                                             <button @click.prevent="previewUrl = imageUrl" class="block w-full h-full rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                                                 <img :src="imageUrl" alt="Gambar" class="w-full h-full object-cover">
                                             </button>
+                                            @if (!auth()->user()->hasRole('logistic'))
+                                            <button @click.prevent="deleteImage()" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-red-600 opacity-100">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                            @endif
                                         </div>
                                         <form @submit.prevent="uploadImage" method="POST" action="{{ route('tasks.shopping-items.image', [$task, $item]) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
                                             @csrf

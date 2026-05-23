@@ -7,6 +7,8 @@
     showImages: false,
     loading: false,
     imgLoading: false,
+    imageCount: {{ $item->images->count() }},
+    maxImages: 2,
     toggle() {
         this.loading = true;
         fetch("{{ route("tasks.teknisi-items.toggle", [$task, $item]) }}", {
@@ -73,6 +75,11 @@
     uploadImages(e) {
         let files = e.target.files;
         if (!files.length) return;
+        if (this.imageCount >= this.maxImages) {
+            alert("Maksimal " + this.maxImages + " gambar per item.");
+            e.target.value = "";
+            return;
+        }
         this.imgLoading = true;
         let formData = new FormData();
         for (let f of files) formData.append("images[]", f);
@@ -82,33 +89,34 @@
             headers: { "Accept": "application/json" },
             body: formData
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
+        .then(r => r.json().then(body => ({ status: r.status, body })))
+        .then(({ status, body }) => {
+            if (body.success) {
                 let grid = document.getElementById("img-grid-" + {{ $item->id }});
                 if (grid) {
-                    grid.insertAdjacentHTML("beforeend", data.html);
+                    grid.insertAdjacentHTML("beforeend", body.html);
                     if (typeof Alpine !== "undefined") Alpine.initTree(grid.lastElementChild);
                 }
+                this.imageCount = body.total;
                 let btn = document.getElementById("img-btn-" + {{ $item->id }});
-                let oldCount = btn ? parseInt(btn.dataset.count) : 0;
-                let newCount = oldCount + data.count;
                 if (btn) {
-                    btn.dataset.count = newCount;
-                    btn.querySelector("span").textContent = "Lihat Gambar (" + newCount + ")";
+                    btn.dataset.count = body.total;
+                    btn.querySelector("span").textContent = "Lihat Gambar (" + body.total + ")";
                 } else {
                     let container = document.getElementById("img-actions-" + {{ $item->id }});
                     if (container) {
                         let newBtn = document.createElement("button");
                         newBtn.id = "img-btn-" + {{ $item->id }};
-                        newBtn.dataset.count = newCount;
+                        newBtn.dataset.count = body.total;
                         newBtn.className = "inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition";
-                        newBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>Lihat Gambar (` + newCount + `)</span><svg class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+                        newBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>Lihat Gambar (` + body.total + `)</span><svg class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
                         newBtn.addEventListener("click", () => { this.showImages = !this.showImages; });
                         container.insertBefore(newBtn, container.firstChild);
                     }
                 }
                 if (!this.showImages) this.showImages = true;
+            } else if (body.message) {
+                alert(body.message);
             }
             this.imgLoading = false;
         })
@@ -128,15 +136,15 @@
             if (data.success) {
                 let el = document.getElementById("teknisi-img-" + imageId);
                 if (el) el.remove();
+                this.imageCount = data.total;
                 let grid = document.getElementById("img-grid-" + {{ $item->id }});
                 let btn = document.getElementById("img-btn-" + {{ $item->id }});
                 if (grid && grid.children.length === 0) {
                     this.showImages = false;
                     if (btn) btn.remove();
                 } else if (btn) {
-                    let count = parseInt(btn.dataset.count) - 1;
-                    btn.dataset.count = count;
-                    btn.querySelector("span").textContent = "Lihat Gambar (" + count + ")";
+                    btn.dataset.count = data.total;
+                    btn.querySelector("span").textContent = "Lihat Gambar (" + data.total + ")";
                 }
             }
         })
@@ -186,7 +194,7 @@
             </button>
             @endif
             @if (auth()->user()->hasAnyRole(['super_admin', 'administrasi', 'teknisi']))
-            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-md text-xs font-semibold text-indigo-700 cursor-pointer transition">
+            <label x-show="imageCount < maxImages" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-md text-xs font-semibold text-indigo-700 cursor-pointer transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span x-show="!imgLoading">Tambah Gambar</span>
                 <span x-show="imgLoading" class="inline-flex items-center gap-1">
@@ -195,6 +203,10 @@
                 </span>
                 <input type="file" name="images[]" accept="image/*" multiple class="hidden" x-on:change="uploadImages($event)">
             </label>
+            <span x-show="imageCount >= maxImages" class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-md text-xs font-medium text-gray-400 cursor-not-allowed">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Maksimal 2 gambar
+            </span>
             @endif
         </div>
 
@@ -205,6 +217,11 @@
                     <button @click.prevent="previewUrl = '{{ $img->imageUrl() }}'" class="block w-full aspect-square rounded-md overflow-hidden border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
                         <img src="{{ $img->imageUrl() }}" alt="Gambar" class="w-full h-full object-cover">
                     </button>
+                    @if (auth()->user()->hasAnyRole(['super_admin', 'administrasi', 'teknisi']))
+                    <button @click.prevent="deleteImage({{ $img->id }})" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-red-600 opacity-100">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    @endif
                 </div>
                 @endforeach
             </div>

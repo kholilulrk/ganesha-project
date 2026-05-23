@@ -7,6 +7,30 @@
     itemNotes: @json($item->notes),
     editOpen: false,
     loading: false,
+    hasImage: {{ $item->image ? 'true' : 'false' }},
+    imageUrl: {!! $item->image ? json_encode($item->imageUrl(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) : 'null' !!},
+    imgLoading: false,
+    uploadImage(e) {
+        e.preventDefault();
+        const form = this.$el.querySelector("form");
+        if (!form) return;
+        this.imgLoading = true;
+        const fd = new FormData(form);
+        fetch(form.action, {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: fd
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                this.imageUrl = res.image_url;
+                this.hasImage = res.has_image;
+            }
+            this.imgLoading = false;
+        })
+        .catch(() => { this.imgLoading = false; });
+    },
     toggle() {
         this.loading = true;
         fetch("{{ route("tasks.shopping-items.toggle", [$task, $item]) }}", {
@@ -65,6 +89,21 @@
             this.loading = false;
         })
         .catch(() => this.loading = false);
+    },
+    deleteImage() {
+        if (!confirm("Hapus gambar ini?")) return;
+        fetch("{{ route("tasks.shopping-items.image.destroy", [$task, $item]) }}", {
+            method: "POST",
+            headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({ _method: "DELETE" })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                this.hasImage = false;
+            }
+        })
+        .catch(() => location.reload());
     }
 }' class="bg-gray-50 rounded-md px-4 py-2 text-sm" x-bind:class="checked ? 'opacity-60' : ''">
     <div class="flex items-center justify-between">
@@ -106,16 +145,21 @@
     </div>
     @endif
     <div class="mt-2 flex flex-wrap items-center gap-2">
-        @if ($item->image && $item->imageUrl())
-        <a href="{{ $item->imageUrl() }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-md text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Lihat</a>
-        <a href="{{ $item->imageUrl() }}" download class="inline-flex items-center px-3 py-1.5 bg-green-50 border border-green-200 rounded-md text-xs font-semibold text-green-700 hover:bg-green-100">Download</a>
+        <template x-if="hasImage">
+        <div class="flex flex-wrap items-center gap-2">
+        <a :href="imageUrl" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-md text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Lihat</a>
+        <a :href="imageUrl" download class="inline-flex items-center px-3 py-1.5 bg-green-50 border border-green-200 rounded-md text-xs font-semibold text-green-700 hover:bg-green-100">Download</a>
+        @if (!auth()->user()->hasRole('logistic'))
+        <button @click.prevent="deleteImage()" class="inline-flex items-center px-3 py-1.5 bg-red-50 border border-red-200 rounded-md text-xs font-semibold text-red-700 hover:bg-red-100">Hapus</button>
         @endif
-        <form x-data="{ loading: false }" x-on:submit="loading = true" method="POST" action="{{ route('tasks.shopping-items.image', [$task, $item]) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+        </div>
+        </template>
+        <form method="POST" action="{{ route('tasks.shopping-items.image', [$task, $item]) }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
             @csrf
             <input type="file" name="image" accept="image/*" class="block text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-            <button type="submit" x-bind:disabled="loading" class="inline-flex items-center px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md text-xs font-semibold text-amber-700 hover:bg-amber-100">
-                <span x-show="!loading">{{ $item->image ? 'Ganti' : 'Upload' }} Gambar</span>
-                <span x-show="loading" class="inline-flex items-center gap-1">
+            <button type="button" @click.prevent="uploadImage($event)" x-bind:disabled="imgLoading" class="inline-flex items-center px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-md text-xs font-semibold text-amber-700 hover:bg-amber-100">
+                <span x-show="!imgLoading" x-text="hasImage ? 'Ganti Gambar' : 'Upload Gambar'"></span>
+                <span x-show="imgLoading" class="inline-flex items-center gap-1">
                     <svg class="animate-spin h-3 w-3 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     ...
                 </span>

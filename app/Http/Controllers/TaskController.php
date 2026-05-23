@@ -363,6 +363,29 @@ class TaskController extends Controller
         return redirect()->route('tasks.show', $task)->with('success', 'Shopping item removed.');
     }
 
+    public function destroyShoppingItemImage(Request $request, Task $task, ShoppingItem $item)
+    {
+        $this->authorizeAccess($task);
+
+        if (auth()->user()->hasRole('logistic')) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Logistic tidak bisa menghapus gambar.'], 403);
+            }
+            abort(403, 'Logistic tidak bisa menghapus gambar.');
+        }
+
+        if ($item->image) {
+            Storage::disk('public')->delete($item->image);
+            $item->update(['image' => null]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('tasks.show', $task)->with('success', 'Gambar berhasil dihapus.');
+    }
+
     public function uploadShoppingItemImage(Request $request, Task $task, ShoppingItem $item)
     {
         $this->authorizeAccess($task);
@@ -519,6 +542,21 @@ class TaskController extends Controller
             'images' => ['required', 'array'],
             'images.*' => ['required', 'image', 'max:5120'],
         ]);
+
+        $currentCount = $item->images()->count();
+        $uploadCount = count($request->file('images', []));
+
+        if ($currentCount + $uploadCount > 2) {
+            $allowed = max(0, 2 - $currentCount);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maksimal 2 gambar per item. Hanya ' . $allowed . ' gambar lagi yang bisa ditambahkan.',
+                ], 422);
+            }
+            return redirect()->route('tasks.show', $task)
+                ->with('error', 'Maksimal 2 gambar per item. Hanya ' . $allowed . ' gambar lagi yang bisa ditambahkan.');
+        }
 
         $images = [];
         foreach ($request->file('images', []) as $file) {

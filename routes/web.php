@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
         Route::post('tasks/{task}/shopping-items', [TaskController::class, 'storeShoppingItem'])->name('tasks.shopping-items.store');
         Route::patch('tasks/{task}/shopping-items/{item}/toggle', [TaskController::class, 'toggleShoppingItem'])->name('tasks.shopping-items.toggle');
         Route::post('tasks/{task}/shopping-items/{item}/image', [TaskController::class, 'uploadShoppingItemImage'])->name('tasks.shopping-items.image');
+        Route::delete('tasks/{task}/shopping-items/{item}/image', [TaskController::class, 'destroyShoppingItemImage'])->name('tasks.shopping-items.image.destroy');
         Route::patch('tasks/{task}/shopping-items/{item}', [TaskController::class, 'updateShoppingItem'])->name('tasks.shopping-items.update');
         Route::delete('tasks/{task}/shopping-items/{item}', [TaskController::class, 'destroyShoppingItem'])->name('tasks.shopping-items.destroy');
         Route::post('tasks/{task}/work-reports', [TaskController::class, 'storeWorkReport'])->name('tasks.work-reports.store');
