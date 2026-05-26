@@ -7,7 +7,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use PhpOffice\PhpWord\TemplateProcessor;
 use ZipArchive;
 
 class LetterTemplateController extends Controller
@@ -69,13 +68,27 @@ class LetterTemplateController extends Controller
         $outputPath = tempnam(sys_get_temp_dir(), 'letter_') . '.docx';
 
         try {
-            $templateProcessor = new TemplateProcessor($templatePath);
+            copy($templatePath, $outputPath);
 
-            foreach ($values as $placeholder => $value) {
-                $templateProcessor->setValue($placeholder, $value ?? '');
+            $zip = new ZipArchive;
+            if ($zip->open($outputPath) !== true) {
+                throw new \Exception('Tidak dapat membuka file DOCX');
             }
 
-            $templateProcessor->saveAs($outputPath);
+            $xml = $zip->getFromName('word/document.xml');
+            if ($xml === false) {
+                $zip->close();
+                throw new \Exception('Tidak dapat membaca konten document.xml');
+            }
+
+            $xml = $this->mergeRuns($xml);
+
+            foreach ($values as $placeholder => $value) {
+                $xml = str_replace('[' . $placeholder . ']', htmlspecialchars($value ?? '', ENT_XML1, 'UTF-8'), $xml);
+            }
+
+            $zip->addFromString('word/document.xml', $xml);
+            $zip->close();
 
             $filename = $letterTemplate->name . '_' . now()->format('Ymd_His') . '.docx';
 
@@ -98,6 +111,7 @@ class LetterTemplateController extends Controller
             $zip->close();
 
             if ($content !== false) {
+                $content = $this->mergeRuns($content);
                 preg_match_all('/\[([^\]]+)\]/', $content, $matches);
                 $placeholders = array_values(array_unique($matches[1]));
                 sort($placeholders);
@@ -105,5 +119,20 @@ class LetterTemplateController extends Controller
         }
 
         return $placeholders;
+    }
+
+    private function mergeRuns(string $xml): string
+    {
+        do {
+            $xml = preg_replace_callback(
+                '/(<w:r\b[^>]*>)(.*?<w:t\b[^>]*>)(.*?)(<\/w:t>)\s*(<\/w:r>)\s*(<w:r\b[^>]*>.*?<w:t\b[^>]*>)(.*?)(<\/w:t>\s*<\/w:r>)/s',
+                fn($m) => $m[1] . $m[2] . $m[3] . $m[7] . $m[8],
+                $xml,
+                -1,
+                $count
+            );
+        } while ($count > 0);
+
+        return $xml;
     }
 }
