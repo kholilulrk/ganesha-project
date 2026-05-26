@@ -9,6 +9,8 @@ use App\Models\TaskComment;
 use App\Models\TeknisiTaskItem;
 use App\Models\TeknisiTaskItemImage;
 use App\Models\User;
+use App\Services\ActivityLogger;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,9 +118,17 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
+        $assignedUserNames = [];
         if (!empty($assignedUserIds)) {
             $task->assignedUsers()->sync($assignedUserIds);
+            $assignedUserNames = User::whereIn('id', $assignedUserIds)->pluck('name')->toArray();
         }
+
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('task')
+            ->withProperties(['assigned_users' => $assignedUserNames])
+            ->log("membuat task \"{$task->title}\"");
 
         return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
     }
@@ -185,26 +195,32 @@ class TaskController extends Controller
             $task->assignedUsers()->sync($assignedUserIds);
         }
 
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('task')
+            ->log("memperbarui task \"{$task->title}\"");
+
         return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
     }
 
     public function updateStatus(Request $request, Task $task): RedirectResponse
     {
-        $user = Auth::user();
-
-        if ($user->hasRole('logistic') && !$task->shoppingItems()->exists()) {
-            abort(403);
-        }
-
-        if (! $user->hasAnyRole(['super_admin', 'administrasi', 'teknisi', 'logistic'])) {
-            abort(403);
-        }
+        $this->authorizeAccess($task);
 
         $validated = $request->validate([
             'status' => ['required', 'in:pending,progress,done'],
         ]);
 
+        $oldStatus = $task->status;
         $task->update($validated);
+
+        if ($oldStatus !== $validated['status']) {
+            app(ActivityLogger::class)
+                ->on($task)
+                ->withLogName('task')
+                ->withProperties(['old_status' => $oldStatus, 'new_status' => $validated['status']])
+                ->log("mengubah status task \"{$task->title}\" dari {$oldStatus} ke {$validated['status']}");
+        }
 
         $message = match ($validated['status']) {
             'progress' => 'Status diubah menjadi Progress.',
@@ -223,7 +239,12 @@ class TaskController extends Controller
 
         $this->authorizeAccess($task);
 
+        $title = $task->title;
         $task->delete();
+
+        app(ActivityLogger::class)
+            ->withLogName('task')
+            ->log("menghapus task \"{$title}\"");
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => true]);
@@ -246,6 +267,11 @@ class TaskController extends Controller
 
         $item = $task->shoppingItems()->create($validated);
 
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('shopping_item')
+            ->log("menambahkan item belanja \"{$item->item_name}\" di task \"{$task->title}\"");
+
         if ($request->expectsJson()) {
             $item->load('checker');
             $total = $task->shoppingItems()->count();
@@ -262,10 +288,16 @@ class TaskController extends Controller
     {
         $this->authorizeAccess($task);
 
+        $newChecked = ! $item->is_checked;
         $item->update([
-            'is_checked' => ! $item->is_checked,
-            'checked_by' => $item->is_checked ? null : Auth::id(),
+            'is_checked' => $newChecked,
+            'checked_by' => $newChecked ? Auth::id() : null,
         ]);
+
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('shopping_item')
+            ->log(($newChecked ? 'mencentang' : 'batal centang') . " item belanja \"{$item->item_name}\" di task \"{$task->title}\"");
 
         if ($request->expectsJson()) {
             $item->refresh();
@@ -363,7 +395,8 @@ class TaskController extends Controller
             Storage::disk('public')->delete($item->image);
         }
 
-        $path = $request->file('image')->store('shopping-items/' . $task->id, 'public');
+        $service = app(ImageService::class);
+        $path = $service->compressAndStore($request->file('image'), 'shopping-items/' . $task->id);
         $item->update(['image' => $path]);
 
         if ($request->expectsJson()) {
@@ -392,6 +425,11 @@ class TaskController extends Controller
             'created_by' => $user->id,
         ]);
 
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('teknisi_item')
+            ->log("menambahkan item teknisi \"{$item->item_name}\" di task \"{$task->title}\"");
+
         if ($request->expectsJson()) {
             $item->load('checker', 'creator', 'images');
             $total = $task->teknisiTaskItems()->count();
@@ -413,10 +451,16 @@ class TaskController extends Controller
 
         $this->authorizeAccess($task);
 
+        $newChecked = !$item->is_checked;
         $item->update([
-            'is_checked' => !$item->is_checked,
-            'checked_by' => $item->is_checked ? null : $user->id,
+            'is_checked' => $newChecked,
+            'checked_by' => $newChecked ? $user->id : null,
         ]);
+
+        app(ActivityLogger::class)
+            ->on($task)
+            ->withLogName('teknisi_item')
+            ->log(($newChecked ? 'mencentang' : 'batal centang') . " item teknisi \"{$item->item_name}\" di task \"{$task->title}\"");
 
         if ($request->expectsJson()) {
             $item->refresh();
@@ -497,8 +541,9 @@ class TaskController extends Controller
         }
 
         $images = [];
+        $service = app(ImageService::class);
         foreach ($request->file('images', []) as $file) {
-            $path = $file->store('teknisi-items/' . $task->id, 'public');
+            $path = $service->compressAndStore($file, 'teknisi-items/' . $task->id);
             $images[] = $item->images()->create(['image' => $path]);
         }
 
@@ -627,20 +672,29 @@ class TaskController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('super_admin')) {
-            return;
-        }
-
-        if ($user->hasRole('administrasi')) {
+        if ($user->hasAnyRole(['super_admin', 'administrasi'])) {
             return;
         }
 
         if ($user->hasRole('teknisi')) {
-            return;
+            $role = $user->getRoleNames()->first();
+            $accessible = Task::where('id', $task->id)->where(function ($q) use ($user, $role) {
+                $q->whereHas('assignedUsers', fn($sub) => $sub->where('user_id', $user->id))
+                  ->orWhere('assigned_role', $role)
+                  ->orWhere(function ($sub) {
+                      $sub->whereDoesntHave('assignedUsers')->whereNull('assigned_role');
+                  });
+            })->exists();
+
+            if ($accessible) {
+                return;
+            }
         }
 
         if ($user->hasRole('logistic')) {
-            return;
+            if ($task->shoppingItems()->exists()) {
+                return;
+            }
         }
 
         abort(403);

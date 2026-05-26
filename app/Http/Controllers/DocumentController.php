@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Services\ActivityLogger;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,7 +60,11 @@ class DocumentController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('documents', 'public');
+        if (ImageService::isImage($file)) {
+            $path = app(ImageService::class)->compressAndStore($file, 'documents');
+        } else {
+            $path = $file->store('documents', 'public');
+        }
 
         $document = Document::create([
             'title' => $validated['title'],
@@ -72,6 +78,11 @@ class DocumentController extends Controller
         if ($validated['visibility'] === 'roles' && !empty($validated['shared_roles'])) {
             $document->sharedRoles()->attach($validated['shared_roles']);
         }
+
+        app(ActivityLogger::class)
+            ->on($document)
+            ->withLogName('document')
+            ->log("mengupload dokumen \"{$document->title}\"");
 
         return redirect()->route('documents.index')->with('success', 'Document uploaded successfully.');
     }
@@ -107,20 +118,35 @@ class DocumentController extends Controller
 
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($document->file);
-            $validated['file'] = $request->file('file')->store('documents', 'public');
+            $file = $request->file('file');
+            if (ImageService::isImage($file)) {
+                $validated['file'] = app(ImageService::class)->compressAndStore($file, 'documents');
+            } else {
+                $validated['file'] = $file->store('documents', 'public');
+            }
         }
 
         $document->update($validated);
 
         $document->sharedRoles()->sync($validated['visibility'] === 'roles' ? ($validated['shared_roles'] ?? []) : []);
 
+        app(ActivityLogger::class)
+            ->on($document)
+            ->withLogName('document')
+            ->log("memperbarui dokumen \"{$document->title}\"");
+
         return redirect()->route('documents.index')->with('success', 'Document updated successfully.');
     }
 
     public function destroy(Document $document): RedirectResponse
     {
+        $title = $document->title;
         Storage::disk('public')->delete($document->file);
         $document->delete();
+
+        app(ActivityLogger::class)
+            ->withLogName('document')
+            ->log("menghapus dokumen \"{$title}\"");
 
         return redirect()->route('documents.index')->with('success', 'Document deleted successfully.');
     }

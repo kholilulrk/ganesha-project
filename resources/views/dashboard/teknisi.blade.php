@@ -12,6 +12,8 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @include('dashboard.partials._announcement', ['announcement' => $latestAnnouncement])
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <a href="{{ route('tasks.index', ['status' => 'pending']) }}" class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 hover:bg-gray-50 transition block">
                     <p class="text-sm text-gray-500">Tugas Pending</p>

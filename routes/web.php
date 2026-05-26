@@ -11,6 +11,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\WorkDocumentController;
 use App\Http\Controllers\SphController;
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -108,6 +109,11 @@ Route::middleware('auth')->group(function () {
         Route::get('sph/{sph}/edit', [SphController::class, 'edit'])->name('sph.edit');
         Route::patch('sph/{sph}', [SphController::class, 'update'])->name('sph.update');
         Route::delete('sph/{sph}', [SphController::class, 'destroy'])->name('sph.destroy');
+    });
+
+    Route::middleware(['role:super_admin|administrasi'])->group(function () {
+        Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::post('activity-logs/destroy-before', [ActivityLogController::class, 'destroyBefore'])->name('activity-logs.destroy-before');
     });
 
     Route::middleware(['role:super_admin'])->prefix('admin')->name('admin.')->group(function () {

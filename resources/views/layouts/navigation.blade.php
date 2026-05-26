@@ -49,7 +49,11 @@
                 @php
                     $teknisiUnfinishedCount = \App\Models\Task::where('task_type', 'teknisi')->whereIn('status', ['pending', 'progress'])->count();
                     $logisticUnfinishedCount = \App\Models\Task::where(function ($q) { $q->whereDoesntHave('shoppingItems')->orWhereHas('shoppingItems', fn($q) => $q->where('is_checked', false)); })->count();
-                    $monitoringActive = request()->routeIs('admin.monitoring.*');
+                    $expiringLetterCount = \App\Models\LetterActivePeriod::whereBetween('masa_aktif_berakhir', [
+                        now()->startOfDay(),
+                        now()->addDays(7)->endOfDay(),
+                    ])->count();
+                    $monitoringActive = request()->routeIs('admin.monitoring.*') || request()->routeIs('letter-active-periods.*');
                 @endphp
                 <div x-data="{ open: @json($monitoringActive) }">
                     <button @click.prevent="open = !open"
@@ -59,9 +63,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         <span class="flex-1 text-left">Monitoring</span>
-                        @if($teknisiUnfinishedCount + $logisticUnfinishedCount > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">{{ $teknisiUnfinishedCount + $logisticUnfinishedCount }}</span>
-                        @endif
+                            @if($teknisiUnfinishedCount + $logisticUnfinishedCount + $expiringLetterCount > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">{{ $teknisiUnfinishedCount + $logisticUnfinishedCount + $expiringLetterCount }}</span>
+                            @endif
                         <svg class="w-4 h-4 transition-transform duration-200 text-indigo-300" :class="{ 'rotate-90': open }" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
@@ -83,6 +87,15 @@
                             <span class="flex-1">M. Logistic</span>
                             @if($logisticUnfinishedCount > 0)
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-200">{{ $logisticUnfinishedCount }}</span>
+                            @endif
+                        </a>
+                        <a href="{{ route('letter-active-periods.index') }}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ease-in-out
+                                  {{ request()->routeIs('letter-active-periods.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-200 hover:text-white hover:bg-white/10' }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                            <span class="flex-1">M. Aktif Surat</span>
+                            @if($expiringLetterCount > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-400/20 text-red-200">{{ $expiringLetterCount }}</span>
                             @endif
                         </a>
                     </div>
@@ -171,24 +184,15 @@
                     </a>
                 @endif
 
-                {{-- M. Aktif Surat --}}
+                {{-- Activity Log --}}
                 @if($user->hasAnyRole(['super_admin', 'administrasi']))
-                    @php
-                        $expiringLetterCount = \App\Models\LetterActivePeriod::whereBetween('masa_aktif_berakhir', [
-                            now()->startOfDay(),
-                            now()->addDays(7)->endOfDay(),
-                        ])->count();
-                    @endphp
-                    <a href="{{ route('letter-active-periods.index') }}"
+                    <a href="{{ route('activity-logs.index') }}"
                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 ease-in-out
-                              {{ request()->routeIs('letter-active-periods.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-100 hover:text-white hover:bg-white/10' }}">
+                              {{ request()->routeIs('activity-logs.*') ? 'bg-white/15 text-white shadow-sm' : 'text-indigo-100 hover:text-white hover:bg-white/10' }}">
                         <svg class="w-5 h-5 shrink-0" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="flex-1">M. Aktif Surat</span>
-                        @if($expiringLetterCount > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-400/20 text-red-200">{{ $expiringLetterCount }}</span>
-                        @endif
+                        <span>Activity Log</span>
                     </a>
                 @endif
 

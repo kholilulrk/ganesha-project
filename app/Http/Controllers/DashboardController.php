@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Document;
 use App\Models\LetterActivePeriod;
 use App\Models\ShoppingItem;
@@ -14,6 +15,8 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+
+        $latestAnnouncement = Announcement::scheduled()->visibleTo($user)->latest()->first();
 
         if ($user->hasRole('super_admin')) {
             $stats = [
@@ -35,7 +38,7 @@ class DashboardController extends Controller
                 now()->addDays(7)->endOfDay(),
             ])->get();
 
-            return view('dashboard.super-admin', compact('stats', 'recentTasks', 'expiringLetters'));
+            return view('dashboard.super-admin', compact('stats', 'recentTasks', 'expiringLetters', 'latestAnnouncement'));
         }
         if ($user->hasRole('administrasi')) {
             $stats = [
@@ -55,7 +58,7 @@ class DashboardController extends Controller
                 now()->addDays(7)->endOfDay(),
             ])->get();
 
-            return view('dashboard.administrasi', compact('stats', 'recentTasks', 'expiringLetters'));
+            return view('dashboard.administrasi', compact('stats', 'recentTasks', 'expiringLetters', 'latestAnnouncement'));
         }
         if ($user->hasRole('teknisi')) {
             $stats = [
@@ -71,7 +74,7 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
-            return view('dashboard.teknisi', compact('stats', 'tasks'));
+            return view('dashboard.teknisi', compact('stats', 'tasks', 'latestAnnouncement'));
         }
         if ($user->hasRole('logistic')) {
             $taskIds = Task::whereHas('shoppingItems')->pluck('id');
@@ -89,7 +92,7 @@ class DashboardController extends Controller
                 ->take(10)
                 ->get();
 
-            return view('dashboard.logistic', compact('stats', 'tasks'));
+            return view('dashboard.logistic', compact('stats', 'tasks', 'latestAnnouncement'));
         }
 
         abort(403);

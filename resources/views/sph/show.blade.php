@@ -86,6 +86,21 @@
                                 <td class="py-2 text-right font-medium">Rp {{ number_format($sph->overhead, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            @php
+                                $totalKomponenBiaya = $sph->honorarium
+                                    + $sph->material
+                                    + ($sph->transport * 5 * ($sph->jumlah_minggu_transport ?? 4) * $jmlTeknisi)
+                                    + ($sph->uang_harian * 5 * ($sph->jumlah_minggu_harian ?? 4) * $jmlTeknisi)
+                                    + ($sph->akomodasi ?? 0)
+                                    + $sph->biaya_lain
+                                    + $sph->overhead;
+                            @endphp
+                            <tr class="border-t-2 border-indigo-200">
+                                <td class="py-2 pr-4 font-semibold text-indigo-800">Total Komponen Biaya</td>
+                                <td class="py-2 text-right font-bold text-indigo-700">Rp {{ number_format($totalKomponenBiaya, 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 

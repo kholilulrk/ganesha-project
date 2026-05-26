@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SphCalculation;
 use App\Models\Task;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -93,7 +94,12 @@ class SphController extends Controller
         $validated['harga_penawaran'] = $validated['total_biaya'] * (1 + $validated['margin_keuntungan'] / 100);
         $validated['created_by'] = Auth::id();
 
-        SphCalculation::create($validated);
+        $sph = SphCalculation::create($validated);
+
+        app(ActivityLogger::class)
+            ->on($sph)
+            ->withLogName('sph')
+            ->log("membuat kalkulasi SPH #{$sph->id}");
 
         return redirect()->route('sph.index')
             ->with('success', 'Kalkulasi SPH berhasil disimpan.');
@@ -172,13 +178,24 @@ class SphController extends Controller
 
         $sph->update($validated);
 
+        app(ActivityLogger::class)
+            ->on($sph)
+            ->withLogName('sph')
+            ->log("memperbarui kalkulasi SPH #{$sph->id}");
+
         return redirect()->route('sph.index')
             ->with('success', 'Kalkulasi SPH berhasil diperbarui.');
     }
 
     public function destroy(SphCalculation $sph): RedirectResponse
     {
+        $id = $sph->id;
         $sph->delete();
+
+        app(ActivityLogger::class)
+            ->withLogName('sph')
+            ->log("menghapus kalkulasi SPH #{$id}");
+
         return redirect()->route('sph.index')
             ->with('success', 'Kalkulasi SPH berhasil dihapus.');
     }
