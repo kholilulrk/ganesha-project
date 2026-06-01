@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teknisi_task_items', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'progress', 'done'])->default('pending')->after('is_checked');
+            $table->string('status')->default('pending');
         });
     }
 

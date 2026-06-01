@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('task_id')->constrained()->cascadeOnDelete();
             $table->text('description');
-            $table->enum('status', ['pending', 'progress', 'done', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

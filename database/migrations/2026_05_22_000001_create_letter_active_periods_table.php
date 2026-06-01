@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama_surat');
             $table->date('start_aktif');
-            $table->enum('jenis_surat', ['SIK', 'SC']);
+            $table->string('jenis_surat');
             $table->date('masa_aktif_berakhir');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();

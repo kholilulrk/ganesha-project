@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('task_type', ['teknisi', 'logistic']);
-            $table->enum('status', ['pending', 'progress', 'done', 'cancelled'])->default('pending');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->string('task_type');
+            $table->string('status')->default('pending');
+            $table->string('priority')->default('medium');
             $table->date('deadline')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('assigned_to')->nullable()->constrained('users');

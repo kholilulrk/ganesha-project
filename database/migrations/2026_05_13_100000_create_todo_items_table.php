@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->date('scheduled_at')->nullable();
-            $table->enum('status', ['pending', 'progress', 'done'])->default('pending');
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
