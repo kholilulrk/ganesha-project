@@ -41,7 +41,7 @@ func GetDocuments(c *gin.Context) {
 	if roleStr != "Super Admin" && roleStr != "Administrasi" {
 		userIDStr := strconv.FormatUint(uint64(currentUserID), 10)
 		query = query.Where(
-			"(share_mode = ? OR (share_mode = ? AND FIND_IN_SET(?, shared_to)))",
+			"(share_mode = ? OR (share_mode = ? AND ? = ANY(string_to_array(shared_to, ','))))",
 			"all", "specific", userIDStr,
 		)
 	}

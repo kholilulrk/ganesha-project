@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"website-backend/config"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -11,14 +11,14 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.AppConfig.DBUser,
-		config.AppConfig.DBPassword,
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Jakarta",
 		config.AppConfig.DBHost,
 		config.AppConfig.DBPort,
+		config.AppConfig.DBUser,
+		config.AppConfig.DBPassword,
 		config.AppConfig.DBName,
 	)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err
 	}
@@ -29,13 +29,13 @@ func ConnectDatabase() error {
 		return err
 	}
 
-	db.Exec("DROP INDEX uni_users_email ON users")
-	db.Exec("ALTER TABLE users DROP COLUMN email")
+	if db.Migrator().HasColumn(&User{}, "email") {
+		db.Migrator().DropColumn(&User{}, "email")
+	}
 
 	if db.Migrator().HasColumn(&Permission{}, "deleted_at") {
 		db.Migrator().DropColumn(&Permission{}, "deleted_at")
 		db.Exec("DELETE FROM permissions")
-		db.Exec("ALTER TABLE permissions AUTO_INCREMENT = 1")
 	}
 
 	if err := SeedPermissions(db); err != nil {

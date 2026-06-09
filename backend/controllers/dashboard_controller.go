@@ -22,7 +22,7 @@ func GetDashboardStats(c *gin.Context) {
 
 	if !isAdmin {
 		jobQuery = jobQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -35,7 +35,7 @@ func GetDashboardStats(c *gin.Context) {
 		Where("id IN (SELECT DISTINCT job_id FROM task_checklists WHERE role = ? AND completed = ?)", "Teknisi", false)
 	if !isAdmin {
 		teknisiQuery = teknisiQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -46,7 +46,7 @@ func GetDashboardStats(c *gin.Context) {
 		Where("id IN (SELECT DISTINCT job_id FROM task_checklists WHERE role = ? AND completed = ?)", "Logistic", false)
 	if !isAdmin {
 		logisticQuery = logisticQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -56,7 +56,7 @@ func GetDashboardStats(c *gin.Context) {
 	jobListQuery := models.DB.Where("status = ?", "pending").Order("created_at DESC")
 	if !isAdmin {
 		jobListQuery = jobListQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, userIDStr,
 		)
 	}
@@ -72,7 +72,7 @@ func GetDashboardStats(c *gin.Context) {
 		Where("status != ? AND id IN (SELECT DISTINCT job_id FROM task_checklists WHERE completed = ?)", "done", false)
 	if !isAdmin {
 		uncompletedQuery = uncompletedQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -82,7 +82,7 @@ func GetDashboardStats(c *gin.Context) {
 	totalQuery := models.DB.Model(&models.Job{})
 	if !isAdmin {
 		totalQuery = totalQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -92,7 +92,7 @@ func GetDashboardStats(c *gin.Context) {
 	completedQuery := models.DB.Model(&models.Job{}).Where("status = ?", "done")
 	if !isAdmin {
 		completedQuery = completedQuery.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}

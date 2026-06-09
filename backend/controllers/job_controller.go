@@ -79,7 +79,7 @@ func GetJobs(c *gin.Context) {
 
 	if roleStr != "Super Admin" && roleStr != "Administrasi" && roleStr != "Logistic" {
 		query = query.Where(
-			"FIND_IN_SET(?, share) AND FIND_IN_SET(?, assigned_to)",
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
 			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
 		)
 	}
@@ -91,7 +91,7 @@ func GetJobs(c *gin.Context) {
 
 	share := c.Query("share")
 	if share != "" {
-		query = query.Where("FIND_IN_SET(?, share)", share)
+		query = query.Where("? = ANY(string_to_array(share, ','))", share)
 	}
 
 	search := c.Query("search")

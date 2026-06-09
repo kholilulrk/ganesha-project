@@ -27,7 +27,7 @@ func CleanupOldActivityLogs() {
 
 func GetActivityLogRetentionDays() int {
 	var setting AppSetting
-	if err := DB.Where("`key` = ?", "activity_log_retention_days").First(&setting).Error; err != nil {
+	if err := DB.Where("\"key\" = ?", "activity_log_retention_days").First(&setting).Error; err != nil {
 		return 30
 	}
 	days := 0
@@ -39,5 +39,5 @@ func GetActivityLogRetentionDays() int {
 }
 
 func SetActivityLogRetentionDays(days int) {
-	DB.Where("`key` = ?", "activity_log_retention_days").Assign(AppSetting{Value: fmt.Sprintf("%d", days)}).FirstOrCreate(&AppSetting{Key: "activity_log_retention_days"})
+	DB.Where("\"key\" = ?", "activity_log_retention_days").Assign(AppSetting{Value: fmt.Sprintf("%d", days)}).FirstOrCreate(&AppSetting{Key: "activity_log_retention_days"})
 }
