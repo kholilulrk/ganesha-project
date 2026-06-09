@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /pekerjaan/shared/
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /pengguna
+Disallow: /permissions
+Disallow: /kelengkapan-dokumen
+Disallow: /monitoring-surat
+Disallow: /dokumen
+Disallow: /todo
+
+Sitemap: https://yourdomain.com/sitemap.xml
