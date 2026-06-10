@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/job.dart';
 import '../services/job_service.dart';
 import '../services/api_service.dart';
@@ -219,7 +220,39 @@ class _SharedScreenState extends State<SharedScreen> {
                             ),
                           ),
                         ),
-                      // Teknisi items
+                      // Spektek document
+                      if (_job?.spektek != null && _job!.spektek!.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Referensi Dokumen', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
+                                const SizedBox(height: 8),
+                                InkWell(
+                                  onTap: () {
+                                    final path = _job!.spektek!.replaceAll('\\', '/');
+                                    final url = path.startsWith('uploads/')
+                                        ? '${ApiService.baseUploadUrl}/$path'
+                                        : '${ApiService.baseUploadUrl}/uploads/spektek/$path';
+                                    launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.picture_as_pdf, color: Colors.red),
+                                      const SizedBox(width: 8),
+                                      Text('Lihat Dokumen',
+                                          style: TextStyle(color: Colors.blue.shade600)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                       if (_teknisiItems.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         Card(
