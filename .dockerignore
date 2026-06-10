@@ -1,0 +1,7 @@
+.git
+node_modules
+mobile
+*.log
+backend/ganesha-backend.exe
+backend/uploads/*
+frontend/dist
