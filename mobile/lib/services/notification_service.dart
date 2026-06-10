@@ -1,9 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../models/notification_model.dart' as model;
 import 'notification_api_service.dart';
 
-class NotificationService {
+class NotificationService with WidgetsBindingObserver {
   static final NotificationService _instance = NotificationService._();
   factory NotificationService() => _instance;
   NotificationService._();
@@ -16,6 +16,8 @@ class NotificationService {
   int get unreadCount => _unreadCount;
 
   Future<void> initialize() async {
+    WidgetsBinding.instance.addObserver(this);
+
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -23,7 +25,7 @@ class NotificationService {
       requestSoundPermission: true,
     );
     const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
-    await _localNotif.initialize(initSettings);
+    await _localNotif.initialize(initSettings, onDidReceiveNotificationResponse: (_) => refreshUnreadCount());
 
     const androidChannel = AndroidNotificationChannel(
       'ganesha_channel',
@@ -47,18 +49,25 @@ class NotificationService {
     });
 
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    FirebaseMessaging.onMessageOpenedApp.listen((_) => refreshUnreadCount());
 
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      _handleNotificationTap(initialMessage);
+      await refreshUnreadCount();
     }
 
     await refreshUnreadCount();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      refreshUnreadCount();
+    }
+  }
+
   Future<void> _requestPermission() async {
-    final settings = await _messaging.requestPermission(
+    await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -94,10 +103,6 @@ class NotificationService {
     refreshUnreadCount();
   }
 
-  void _handleNotificationTap(RemoteMessage message) {
-    // Navigation handled via callback
-  }
-
   Future<void> refreshUnreadCount() async {
     try {
       _unreadCount = await NotificationApiService.getUnreadCount();
@@ -106,6 +111,7 @@ class NotificationService {
   }
 
   Future<void> dispose() async {
+    WidgetsBinding.instance.removeObserver(this);
     final token = await _messaging.getToken();
     if (token != null) {
       await NotificationApiService.unregisterFCMToken(token);
