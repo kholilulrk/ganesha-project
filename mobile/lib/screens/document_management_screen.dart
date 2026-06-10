@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/document.dart';
 import '../models/user.dart';
 import '../services/document_service.dart';
@@ -296,6 +298,36 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
     }
   }
 
+  Future<void> _downloadFile(Document doc) async {
+    final fileUrl = '${ApiService.baseUploadUrl}/${doc.filePath.replaceAll('\\', '/')}';
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = doc.filePath.split('/').last;
+      final file = File('${dir.path}/$fileName');
+
+      if (await file.exists()) {
+        await launchUrl(Uri.parse(fileUrl), mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      final httpClient = http.Client();
+      try {
+        final response = await httpClient.get(Uri.parse(fileUrl));
+        if (response.statusCode == 200) {
+          await file.writeAsBytes(response.bodyBytes);
+          _showToast('File tersimpan');
+          await launchUrl(Uri.parse(fileUrl), mode: LaunchMode.externalApplication);
+        } else {
+          _showToast('Gagal download file');
+        }
+      } finally {
+        httpClient.close();
+      }
+    } catch (e) {
+      _showToast('Gagal download file');
+    }
+  }
+
   Future<void> _showDetailPreview(Document doc) async {
     final fileUrl = '${ApiService.baseUploadUrl}/${doc.filePath.replaceAll('\\', '/')}';
     final isPdf = doc.tipeDokumen == 'PDF';
@@ -572,7 +604,8 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                                         onSelected: (v) {
                                           if (v == 'edit') _showForm(editId: doc.id);
                                           if (v == 'delete') _deleteDoc(doc.id);
-                                          if (v == 'download') {
+                                          if (v == 'download') _downloadFile(doc);
+                                          if (v == 'copy_link') {
                                             final fileUrl = '${ApiService.baseUploadUrl}/${doc.filePath.replaceAll('\\', '/')}';
                                             Clipboard.setData(ClipboardData(text: fileUrl));
                                             _showToast('Link file disalin');
@@ -580,6 +613,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                                         },
                                         itemBuilder: (_) => [
                                           const PopupMenuItem(value: 'download', child: ListTile(leading: Icon(Icons.download, size: 18), title: Text('Download', style: TextStyle(fontSize: 13)), dense: true, contentPadding: EdgeInsets.zero)),
+                                          const PopupMenuItem(value: 'copy_link', child: ListTile(leading: Icon(Icons.link, size: 18), title: Text('Salin Link', style: TextStyle(fontSize: 13)), dense: true, contentPadding: EdgeInsets.zero)),
                                           const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit, size: 18), title: Text('Edit', style: TextStyle(fontSize: 13)), dense: true, contentPadding: EdgeInsets.zero)),
                                           const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete, size: 18, color: Colors.red), title: Text('Hapus', style: TextStyle(fontSize: 13, color: Colors.red)), dense: true, contentPadding: EdgeInsets.zero)),
                                         ],
