@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"website-backend/config"
@@ -29,10 +31,10 @@ type ServiceAccount struct {
 
 type FCMV1Message struct {
 	Message struct {
-		Token        string            `json:"token"`
-		Notification *FCMNotification  `json:"notification,omitempty"`
-		Data         map[string]string `json:"data,omitempty"`
-		Android      *FCMAndroidConfig `json:"android,omitempty"`
+		Token        string              `json:"token"`
+		Notification *FCMNotification    `json:"notification,omitempty"`
+		Data         map[string]string   `json:"data,omitempty"`
+		Android      *FCMAndroidConfig   `json:"android,omitempty"`
 	} `json:"message"`
 }
 
@@ -42,7 +44,7 @@ type FCMNotification struct {
 }
 
 type FCMAndroidConfig struct {
-	Priority    string             `json:"priority"`
+	Priority     string                  `json:"priority"`
 	Notification *FCMAndroidNotification `json:"notification,omitempty"`
 }
 
@@ -58,21 +60,41 @@ type OAuth2Response struct {
 }
 
 var (
-	accessToken     string
-	accessTokenExp  time.Time
+	accessToken    string
+	accessTokenExp time.Time
+	cachedSA       *ServiceAccount
+	saOnce         sync.Once
+	saLoadErr      error
 )
+
+func getServiceAccount() (*ServiceAccount, error) {
+	saOnce.Do(func() {
+		path := config.AppConfig.FCMServiceAccountPath
+		if path == "" {
+			saLoadErr = fmt.Errorf("FCM_SERVICE_ACCOUNT_PATH not set")
+			return
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			saLoadErr = fmt.Errorf("read service account file %s: %w", path, err)
+			return
+		}
+		var sa ServiceAccount
+		if err := json.Unmarshal(data, &sa); err != nil {
+			saLoadErr = fmt.Errorf("parse service account: %w", err)
+			return
+		}
+		cachedSA = &sa
+	})
+	return cachedSA, saLoadErr
+}
 
 func getAccessToken() (string, error) {
 	if accessToken != "" && time.Now().Before(accessTokenExp) {
 		return accessToken, nil
 	}
 
-	path := config.AppConfig.FCMServiceAccountPath
-	if path == "" {
-		return "", fmt.Errorf("FCM_SERVICE_ACCOUNT_PATH not set")
-	}
-
-	sa, err := loadServiceAccount(path)
+	sa, err := getServiceAccount()
 	if err != nil {
 		return "", err
 	}
@@ -109,27 +131,29 @@ func getAccessToken() (string, error) {
 		return "", fmt.Errorf("decode oauth2 response: %w", err)
 	}
 
+	if oauth.AccessToken == "" {
+		return "", fmt.Errorf("empty access token in oauth response")
+	}
+
 	accessToken = oauth.AccessToken
 	accessTokenExp = now.Add(time.Duration(oauth.ExpiresIn-60) * time.Second)
+	log.Printf("FCM: new access token obtained, expires in %d seconds", oauth.ExpiresIn)
 	return accessToken, nil
 }
 
-func loadServiceAccount(path string) (*ServiceAccount, error) {
-	saJSON, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read service account file: %w", err)
-	}
-	var sa ServiceAccount
-	if err := json.Unmarshal(saJSON, &sa); err != nil {
-		return nil, fmt.Errorf("parse service account: %w", err)
-	}
-	return &sa, nil
-}
-
 func SendPushToUser(userID uint, title, body, notifType string, refID uint, refType string) {
+	log.Printf("FCM: SendPushToUser userID=%d title=%s", userID, title)
+
 	var tokens []models.FCMToken
 	models.DB.Where("user_id = ?", userID).Find(&tokens)
 	if len(tokens) == 0 {
+		log.Printf("FCM: no tokens found for user %d", userID)
+		return
+	}
+
+	sa, err := getServiceAccount()
+	if err != nil {
+		log.Printf("FCM ERROR: %v", err)
 		return
 	}
 
@@ -145,16 +169,12 @@ func SendPushToUser(userID uint, title, body, notifType string, refID uint, refT
 
 	token, err := getAccessToken()
 	if err != nil {
-		return
-	}
-
-	sa, _ := loadServiceAccount(config.AppConfig.FCMServiceAccountPath)
-	if sa == nil {
+		log.Printf("FCM ERROR: getAccessToken: %v", err)
 		return
 	}
 
 	for _, t := range tokens {
-		sendFCMV1(t.Token, title, body, notifType, fmt.Sprintf("%d", refID), refType, token, sa.ProjectID)
+		go sendFCMV1(t.Token, title, body, notifType, fmt.Sprintf("%d", refID), refType, token, sa.ProjectID)
 	}
 }
 
@@ -179,8 +199,8 @@ func sendFCMV1(token, title, body, notifType, refID, refType, bearer, projectID 
 	msg.Message.Token = token
 	msg.Message.Notification = &FCMNotification{Title: title, Body: body}
 	msg.Message.Data = map[string]string{
-		"type":    notifType,
-		"ref_id":  refID,
+		"type":     notifType,
+		"ref_id":   refID,
 		"ref_type": refType,
 	}
 	msg.Message.Android = &FCMAndroidConfig{
@@ -201,13 +221,29 @@ func sendFCMV1(token, title, body, notifType, refID, refType, bearer, projectID 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("FCM ERROR: send request: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
+		log.Printf("FCM ERROR: 401 Unauthorized, resetting token")
 		accessToken = ""
 	}
+
+	if resp.StatusCode != 200 {
+		var errBody bytes.Buffer
+		errBody.ReadFrom(resp.Body)
+		log.Printf("FCM ERROR: status=%d body=%s", resp.StatusCode, errBody.String())
+		return
+	}
+
+	log.Printf("FCM: push sent successfully to token=%s...", token[:min(len(token), 20)])
 }
 
-
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}

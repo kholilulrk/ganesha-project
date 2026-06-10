@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../models/notification_model.dart' as model;
 import 'notification_api_service.dart';
 
 class NotificationService {
@@ -8,12 +9,32 @@ class NotificationService {
   NotificationService._();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotif = FlutterLocalNotificationsPlugin();
   int _unreadCount = 0;
   void Function(int)? onUnreadChanged;
 
   int get unreadCount => _unreadCount;
 
   Future<void> initialize() async {
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    await _localNotif.initialize(initSettings);
+
+    const androidChannel = AndroidNotificationChannel(
+      'ganesha_channel',
+      'Notifikasi Ganesha',
+      description: 'Notifikasi aplikasi Ganesha Energi',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    );
+    await _localNotif.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(androidChannel);
+
     await _requestPermission();
 
     final token = await _messaging.getToken();
@@ -42,19 +63,39 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-    if (kDebugMode) {
-      debugPrint('Notification permission: ${settings.authorizationStatus}');
-    }
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
-    if (message.notification != null) {
-      refreshUnreadCount();
-    }
+    final title = message.notification?.title ?? message.data['title'] ?? 'Notifikasi';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+
+    _localNotif.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'ganesha_channel',
+          'Notifikasi Ganesha',
+          channelDescription: 'Notifikasi aplikasi Ganesha Energi',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
+
+    refreshUnreadCount();
   }
 
   void _handleNotificationTap(RemoteMessage message) {
-    // Navigation handled via onUnreadChanged callback
+    // Navigation handled via callback
   }
 
   Future<void> refreshUnreadCount() async {

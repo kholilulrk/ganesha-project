@@ -82,6 +82,7 @@ func SetupRouter(r *gin.Engine) {
 			protected.GET("/notifications/unread-count", controllers.GetUnreadNotificationCount)
 			protected.PUT("/notifications/:id/read", controllers.MarkNotificationRead)
 			protected.PUT("/notifications/read-all", controllers.MarkAllNotificationsRead)
+		protected.GET("/fcm/test/:userId", controllers.TestFCMPush)
 		protected.GET("/jobs/:id/checklist", controllers.GetChecklist)
 			protected.POST("/jobs/:id/checklist", controllers.AddChecklistItem)
 			protected.PUT("/jobs/:id/checklist/:itemId", controllers.ToggleChecklistItem)

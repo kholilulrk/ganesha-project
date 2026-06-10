@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/permission_provider.dart';
 import '../services/api_service.dart';
-import '../services/notification_service.dart';
 import '../widgets/profile_bar.dart';
 import 'home_screen.dart';
 import 'job_list_screen.dart';
@@ -13,7 +12,6 @@ import 'permissions_screen.dart';
 import 'document_management_screen.dart';
 import 'monitoring_surat_screen.dart';
 import 'kelengkapan_dokumen_screen.dart';
-import 'notification_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -25,15 +23,11 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _uncompletedTeknisi = 0;
   int _uncompletedLogistic = 0;
-  int _notifBadge = 0;
 
   @override
   void initState() {
     super.initState();
     _loadBadgeCounts();
-    NotificationService().onUnreadChanged = (count) {
-      if (mounted) setState(() => _notifBadge = count);
-    };
   }
 
   Future<void> _loadBadgeCounts() async {
@@ -56,12 +50,6 @@ class _MainShellState extends State<MainShell> {
     return (_uncompletedTeknisi + _uncompletedLogistic) > 0;
   }
 
-  bool _badgeForTab(int index) {
-    // Tab 2 is Pekerjaan
-    if (index == 2) return _showBadge;
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final perm = context.watch<PermissionProvider>();
@@ -77,11 +65,6 @@ class _MainShellState extends State<MainShell> {
     screenList.add(const HomeScreen());
     titles.add('Dashboard');
     icons.add(Icons.dashboard_rounded);
-
-    // Notifications
-    screenList.add(const NotificationScreen());
-    titles.add('Notif');
-    icons.add(Icons.notifications_rounded);
 
     // Data Pekerjaan - only if can view
     if (perm.can('pekerjaan', 'view', isSuperAdmin: isSuperAdmin)) {
@@ -163,8 +146,7 @@ class _MainShellState extends State<MainShell> {
                       icon: iconData,
                       label: title,
                       isSelected: isSelected,
-                      showBadge: (i == 1 && _notifBadge > 0) || _badgeForTab(i),
-                      badgeCount: i == 1 ? _notifBadge : null,
+                      showBadge: i == 1 && _showBadge,
                       onTap: () => setState(() => _currentIndex = i),
                     );
                   }),
@@ -183,7 +165,6 @@ class _BottomNavItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final bool showBadge;
-  final int? badgeCount;
   final VoidCallback onTap;
 
   const _BottomNavItem({
@@ -191,7 +172,6 @@ class _BottomNavItem extends StatelessWidget {
     required this.label,
     required this.isSelected,
     this.showBadge = false,
-    this.badgeCount,
     required this.onTap,
   });
 
@@ -220,25 +200,11 @@ class _BottomNavItem extends StatelessWidget {
                   Positioned(
                     top: 2,
                     right: 2,
-                    child: badgeCount != null && badgeCount! > 0
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            constraints: const BoxConstraints(minWidth: 16, minHeight: 14),
-                            child: Text(
-                              badgeCount! > 99 ? '99+' : '$badgeCount',
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          ),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    ),
                   ),
               ],
             ),

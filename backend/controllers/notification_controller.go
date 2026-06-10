@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"website-backend/models"
+	"website-backend/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,4 +93,16 @@ func MarkAllNotificationsRead(c *gin.Context) {
 	models.DB.Model(&models.Notification{}).Where("user_id = ? AND is_read = ?", currentUserID, false).Update("is_read", true)
 
 	c.JSON(http.StatusOK, gin.H{"message": "All marked as read"})
+}
+
+func TestFCMPush(c *gin.Context) {
+	userIDStr := c.Param("userId")
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	services.SendPushToUser(uint(userID), "Test Notifikasi", "Ini adalah notifikasi test dari server", "test", 0, "")
+	c.JSON(http.StatusOK, gin.H{"message": "Test push sent"})
 }

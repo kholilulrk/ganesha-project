@@ -1,4 +1,4 @@
-package com.example.website_mobile
+package com.landev.ganeshaproject
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
