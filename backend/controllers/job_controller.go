@@ -208,11 +208,26 @@ func CreateJob(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"job": job})
 
-	go services.SendPushToAllUsers(
+	services.SendPushToRoles([]string{"Administrasi", "Logistic"},
 		"Pekerjaan Baru",
 		"Pekerjaan \""+job.Name+"\" telah dibuat",
 		"new_job", job.ID, "job",
 	)
+
+	if job.AssignedTo != "" {
+		assignedIDs := strings.Split(job.AssignedTo, ",")
+		for _, idStr := range assignedIDs {
+			id, err := strconv.ParseUint(strings.TrimSpace(idStr), 10, 64)
+			if err != nil {
+				continue
+			}
+			go services.SendPushToUser(uint(id),
+				"Pekerjaan Baru",
+				"Pekerjaan \""+job.Name+"\" telah dibuat",
+				"new_job", job.ID, "job",
+			)
+		}
+	}
 }
 
 func UpdateJob(c *gin.Context) {
