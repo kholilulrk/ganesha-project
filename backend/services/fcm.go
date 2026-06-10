@@ -144,6 +144,16 @@ func getAccessToken() (string, error) {
 func SendPushToUser(userID uint, title, body, notifType string, refID uint, refType string) {
 	log.Printf("FCM: SendPushToUser userID=%d title=%s", userID, title)
 
+	notification := models.Notification{
+		UserID:  userID,
+		Title:   title,
+		Body:    body,
+		Type:    notifType,
+		RefID:   refID,
+		RefType: refType,
+	}
+	models.DB.Create(&notification)
+
 	var tokens []models.FCMToken
 	models.DB.Where("user_id = ?", userID).Find(&tokens)
 	if len(tokens) == 0 {
@@ -156,16 +166,6 @@ func SendPushToUser(userID uint, title, body, notifType string, refID uint, refT
 		log.Printf("FCM ERROR: %v", err)
 		return
 	}
-
-	notification := models.Notification{
-		UserID:  userID,
-		Title:   title,
-		Body:    body,
-		Type:    notifType,
-		RefID:   refID,
-		RefType: refType,
-	}
-	models.DB.Create(&notification)
 
 	token, err := getAccessToken()
 	if err != nil {
