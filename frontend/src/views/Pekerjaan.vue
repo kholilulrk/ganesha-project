@@ -396,7 +396,18 @@ async function shareJob(job) {
       job.share_token = token
     }
     const url = window.location.origin + '/pekerjaan/shared/' + token
-    await navigator.clipboard.writeText(url)
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url)
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
     showToast('Tersalin')
   } catch (e) {
     alert('Gagal: ' + (e.response?.data?.error || e.message))
