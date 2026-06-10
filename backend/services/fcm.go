@@ -229,16 +229,29 @@ func sendFCMV1(token, title, body, notifType, refID, refType, bearer, projectID 
 	if resp.StatusCode == 401 {
 		log.Printf("FCM ERROR: 401 Unauthorized, resetting token")
 		accessToken = ""
-	}
-
-	if resp.StatusCode != 200 {
+	} else if resp.StatusCode == 404 {
+		var errBody struct {
+			Error struct {
+				Details []struct {
+					ErrorCode string `json:"errorCode"`
+				} `json:"details"`
+			} `json:"error"`
+		}
+		if json.NewDecoder(resp.Body).Decode(&errBody) == nil {
+			for _, d := range errBody.Error.Details {
+				if d.ErrorCode == "UNREGISTERED" {
+					log.Printf("FCM: removing unregistered token")
+					models.DB.Where("token = ?", token).Delete(&models.FCMToken{})
+				}
+			}
+		}
+	} else if resp.StatusCode != 200 {
 		var errBody bytes.Buffer
 		errBody.ReadFrom(resp.Body)
 		log.Printf("FCM ERROR: status=%d body=%s", resp.StatusCode, errBody.String())
-		return
+	} else {
+		log.Printf("FCM: push sent successfully to token=%s...", token[:min(len(token), 20)])
 	}
-
-	log.Printf("FCM: push sent successfully to token=%s...", token[:min(len(token), 20)])
 }
 
 func min(a, b int) int {
