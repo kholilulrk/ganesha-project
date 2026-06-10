@@ -554,9 +554,21 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                           itemCount: _documents.length,
                           itemBuilder: (_, i) {
                             final doc = _documents[i];
-                            return Card(
+                            final dc = _tipeColor(doc.tipeDokumen);
+                            return Container(
                               margin: const EdgeInsets.only(bottom: 8),
-                              child: InkWell(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  colors: [dc.withOpacity(0.12), dc.withOpacity(0.04)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(16),
+                                child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () => _showDetailPreview(doc),
                                 child: Padding(
@@ -621,6 +633,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                                     ],
                                   ),
                                 ),
+                              ),
                               ),
                             );
                           },

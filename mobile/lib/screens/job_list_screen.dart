@@ -487,12 +487,28 @@ class _JobCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final c = _statusColor();
+    final bgColors = [
+      c.withOpacity(0.12),
+      c.withOpacity(0.04),
+    ];
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
+        gradient: LinearGradient(
+          colors: bgColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
@@ -571,6 +587,7 @@ class _JobCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

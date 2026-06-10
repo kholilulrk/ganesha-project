@@ -369,23 +369,30 @@ class _SuratCard extends StatelessWidget {
     final isExpiring = surat.isExpiring;
     final theme = Theme.of(context);
 
-    Color? bgColor;
     Color? borderColor;
+    List<Color>? gradientColors;
     if (isExpired) {
-      bgColor = Colors.red.withOpacity(0.04);
+      gradientColors = [Colors.red.withOpacity(0.10), Colors.red.withOpacity(0.03)];
       borderColor = Colors.red.withOpacity(0.2);
     } else if (isExpiring) {
-      bgColor = Colors.amber.withOpacity(0.06);
+      gradientColors = [Colors.amber.withOpacity(0.12), Colors.amber.withOpacity(0.04)];
       borderColor = Colors.amber.withOpacity(0.3);
+    } else {
+      gradientColors = [const Color(0xFF4F46E5).withOpacity(0.08), const Color(0xFF4F46E5).withOpacity(0.02)];
+      borderColor = Colors.grey.shade200;
     }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
         decoration: BoxDecoration(
-          color: bgColor ?? theme.cardTheme.color ?? theme.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor ?? Colors.grey.shade200),
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: borderColor),
         ),
         child: Material(
           color: Colors.transparent,

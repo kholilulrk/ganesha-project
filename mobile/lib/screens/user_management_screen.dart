@@ -271,12 +271,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           itemCount: _users.length,
                           itemBuilder: (_, i) {
                             final u = _users[i];
+                            final rc = _roleColor(u.role);
                             return FadeSlideIn(index: i,
-                              child: Card(
+                              child: Container(
                                 margin: const EdgeInsets.only(bottom: 8),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Row(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [rc.withOpacity(0.10), rc.withOpacity(0.03)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: Row(
                                     children: [
                                       CircleAvatar(
                                         radius: 22,
@@ -332,15 +344,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                             ),
                                           ],
                                         ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 if (_toast != null)

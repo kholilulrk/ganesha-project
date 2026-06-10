@@ -185,9 +185,29 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     final isExpanded = _selectedRole == role.role;
     final rolePerms = _allPermissions[role.role] ?? [];
 
-    return Card(
+    Color roleColor;
+    switch (role.role) {
+      case 'Super Admin': roleColor = const Color(0xFFFF6B6B); break;
+      case 'Administrasi': roleColor = const Color(0xFF4F46E5); break;
+      case 'Teknisi': roleColor = const Color(0xFFEAB308); break;
+      case 'Logistic': roleColor = const Color(0xFF22C55E); break;
+      default: roleColor = Colors.grey;
+    }
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [roleColor.withOpacity(0.10), roleColor.withOpacity(0.03)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,6 +303,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             ],
           ],
         ),
+      ),
       ),
     );
   }

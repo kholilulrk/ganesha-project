@@ -248,12 +248,18 @@ class _TodoScreenState extends State<TodoScreen> {
                             final creatorName = todo.createdBy == currentUserId ? 'Saya' : _userName(todo.createdBy);
                             final assigneeName = isCurrentUser ? 'saya' : _userName(todo.assignedTo);
 
+                            final c = todo.isDone ? const Color(0xFF22C55E) : const Color(0xFF4F46E5);
+
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               decoration: BoxDecoration(
-                                color: theme.cardColor,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey.shade200),
+                                gradient: LinearGradient(
+                                  colors: [c.withOpacity(0.10), c.withOpacity(0.03)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                border: Border.all(color: c.withOpacity(0.15)),
                               ),
                               child: Material(
                                 color: Colors.transparent,
