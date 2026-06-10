@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 	"website-backend/config"
 	"website-backend/models"
 
@@ -43,7 +44,11 @@ func Register(c *gin.Context) {
 	}
 
 	if err := models.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		msg := err.Error()
+		if strings.Contains(msg, "duplicate key") || strings.Contains(msg, "uni_users_username") {
+			msg = "Username sudah digunakan"
+		}
+		c.JSON(http.StatusConflict, gin.H{"error": msg})
 		return
 	}
 
