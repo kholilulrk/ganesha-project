@@ -26,7 +26,7 @@
 
         <div class="info-card" v-if="job.spektek">
           <label>SPEKTEK</label>
-          <a :href="'/uploads/spektek/' + job.spektek" target="_blank" class="spektek-link">📄 Lihat Dokumen</a>
+          <a :href="spektekUrl" target="_blank" class="spektek-link">📄 Lihat Dokumen</a>
         </div>
 
         <div v-if="teknisiItems.length" class="section-card">
@@ -150,6 +150,13 @@ function toggleReply(commentId) {
   replyText.value = ''
   replyName.value = ''
 }
+
+const spektekUrl = computed(() => {
+  if (!job.value?.spektek) return ''
+  const path = job.value.spektek.replace(/\\/g, '/')
+  if (path.startsWith('uploads/')) return '/' + path
+  return '/uploads/spektek/' + path
+})
 
 const tekProgress = computed(() => progress(teknisiItems.value))
 function progress(items) {
