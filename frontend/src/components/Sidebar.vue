@@ -94,7 +94,7 @@
           <span class="nav-icon">👤</span>
           <span v-if="!collapsed">Profile</span>
         </router-link>
-        <router-link v-if="!isLimitedRole" to="/pengguna" class="nav-item sub-item" active-class="active">
+        <router-link v-if="user?.role === 'Super Admin'" to="/pengguna" class="nav-item sub-item" active-class="active">
           <span class="nav-icon">👥</span>
           <span v-if="!collapsed">Pengguna</span>
         </router-link>
