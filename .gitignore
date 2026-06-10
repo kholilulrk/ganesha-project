@@ -8,3 +8,6 @@ mobile/.dart_tool/
 .idea/
 *.log
 .env
+backend/*.json
+backend/backend.err
+mobile/android/app/google-services.json

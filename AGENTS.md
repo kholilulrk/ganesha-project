@@ -34,3 +34,12 @@
 13. **Filter Lanjutan Pekerjaan** — Filter by status + share role.
 14. **SPEKTEK PDF Reference** — Attach PDF referensi saat create/edit job.
 15. **Collapsible Sidebar** — Sidebar bisa collapse ke ikon saja. 🔜 Kerjakan nanti.
+
+## ✅ Push Notification (New — Code selesai, butuh Firebase project)
+- Backend: `models/notification.go`, `services/fcm.go`, `controllers/notification_controller.go`, routes untuk register/unregister token, get/mark-notifications
+- Notifikasi dikirim saat: job baru dibuat (SendPushToAllUsers), checklist item baru (ke role terkait), dokumen baru diupload (SendPushToAllUsers)
+- Mobile: `notification_service.dart` (FCM init + token register), `notification_api_service.dart`, `notification_model.dart`, `notification_screen.dart`
+- `main_shell.dart`: tambah tab Notif dengan badge count
+- `main.dart`: Firebase init, `pubspec.yaml`: firebase_core + firebase_messaging
+- Android config: `settings.gradle.kts` + `app/build.gradle.kts` + placeholder `google-services.json`
+- **Bloked**: butuh Firebase project (google-services.json asli + FCM_SERVER_KEY) untuk build release dan push nyata

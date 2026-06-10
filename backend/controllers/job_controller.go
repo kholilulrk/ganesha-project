@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"website-backend/middleware"
 	"website-backend/models"
+	"website-backend/services"
 )
 
 type JobInput struct {
@@ -206,6 +207,12 @@ func CreateJob(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"job": job})
+
+	go services.SendPushToAllUsers(
+		"Pekerjaan Baru",
+		"Pekerjaan \""+job.Name+"\" telah dibuat",
+		"new_job", job.ID, "job",
+	)
 }
 
 func UpdateJob(c *gin.Context) {

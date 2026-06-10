@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 	"website-backend/models"
+	"website-backend/services"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/image/draw"
@@ -69,6 +70,23 @@ func AddChecklistItem(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"item": item})
+
+	var job models.Job
+	if err := models.DB.First(&job, item.JobID).Error; err == nil {
+		roleNames := map[string]string{"Teknisi": "Teknisi", "Logistic": "Logistic"}
+		roleLabel := roleNames[input.Role]
+		if roleLabel != "" {
+			var targetUsers []models.User
+			models.DB.Where("role = ?", input.Role).Find(&targetUsers)
+			for _, u := range targetUsers {
+				go services.SendPushToUser(u.ID,
+					"Tugas "+roleLabel+" Baru",
+					""+input.Item+" di pekerjaan \""+job.Name+"\"",
+					"new_task", job.ID, "job",
+				)
+			}
+		}
+	}
 }
 
 func ToggleChecklistItem(c *gin.Context) {

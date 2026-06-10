@@ -6,14 +6,15 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	JWTSecret  string
-	ServerPort string
-	AppURL     string
+	DBHost                 string
+	DBPort                 string
+	DBUser                 string
+	DBPassword             string
+	DBName                 string
+	JWTSecret              string
+	ServerPort             string
+	AppURL                 string
+	FCMServiceAccountPath string
 }
 
 var AppConfig *Config
@@ -30,6 +31,7 @@ func LoadConfig() {
 		JWTSecret:  getEnv("JWT_SECRET", "secret-key-change-in-production"),
 		ServerPort: getEnv("SERVER_PORT", "8080"),
 		AppURL:     getEnv("APP_URL", "http://localhost:5173"),
+		FCMServiceAccountPath: getEnv("FCM_SERVICE_ACCOUNT_PATH", ""),
 	}
 }
 

@@ -17,7 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _error;
   bool _obscure = true;
 
-  final _roles = ['Teknisi', 'Logistic', 'Administrasi', 'Super Admin'];
+  final _roles = ['Teknisi', 'Logistic', 'Administrasi'];
 
   @override
   void dispose() {

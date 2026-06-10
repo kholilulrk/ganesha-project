@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"website-backend/models"
+	"website-backend/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -139,6 +140,12 @@ func CreateDocument(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"document": doc})
+
+	go services.SendPushToAllUsers(
+		"Dokumen Baru",
+		"Dokumen \""+doc.NamaDokumen+"\" telah diupload",
+		"new_document", doc.ID, "document",
+	)
 }
 
 func UpdateDocument(c *gin.Context) {

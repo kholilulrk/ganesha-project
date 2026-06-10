@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.41.35.109:8080/api';
-  static const String baseUploadUrl = 'http://10.41.35.109:8080';
+  static const String baseUrl = 'http://203.194.115.28/api';
+  static const String baseUploadUrl = 'http://203.194.115.28';
   static const Duration _timeout = Duration(seconds: 30);
 
   static Future<Map<String, String>> _headers({bool multipart = false}) async {

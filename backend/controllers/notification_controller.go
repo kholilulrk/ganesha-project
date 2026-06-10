@@ -1,0 +1,94 @@
+package controllers
+
+import (
+	"net/http"
+	"website-backend/models"
+
+	"github.com/gin-gonic/gin"
+)
+
+type FCMRegisterInput struct {
+	Token string `json:"token" binding:"required"`
+}
+
+func RegisterFCMToken(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	var input FCMRegisterInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var existing models.FCMToken
+	result := models.DB.Where("user_id = ? AND token = ?", currentUserID, input.Token).First(&existing)
+	if result.Error == nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Token already registered"})
+		return
+	}
+
+	token := models.FCMToken{
+		UserID: currentUserID,
+		Token:  input.Token,
+	}
+	if err := models.DB.Create(&token).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Token registered"})
+}
+
+func UnregisterFCMToken(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	var input FCMRegisterInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	models.DB.Where("user_id = ? AND token = ?", currentUserID, input.Token).Delete(&models.FCMToken{})
+	c.JSON(http.StatusOK, gin.H{"message": "Token unregistered"})
+}
+
+func GetNotifications(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	var notifications []models.Notification
+	models.DB.Where("user_id = ?", currentUserID).Order("created_at DESC").Limit(50).Find(&notifications)
+
+	c.JSON(http.StatusOK, gin.H{"notifications": notifications})
+}
+
+func GetUnreadNotificationCount(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	var count int64
+	models.DB.Model(&models.Notification{}).Where("user_id = ? AND is_read = ?", currentUserID, false).Count(&count)
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func MarkNotificationRead(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	id := c.Param("id")
+	models.DB.Model(&models.Notification{}).Where("id = ? AND user_id = ?", id, currentUserID).Update("is_read", true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Marked as read"})
+}
+
+func MarkAllNotificationsRead(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID, _ := userID.(uint)
+
+	models.DB.Model(&models.Notification{}).Where("user_id = ? AND is_read = ?", currentUserID, false).Update("is_read", true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "All marked as read"})
+}
