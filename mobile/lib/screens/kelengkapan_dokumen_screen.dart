@@ -110,7 +110,7 @@ class _KelengkapanDokumenScreenState extends State<KelengkapanDokumenScreen> {
       type: FileType.custom,
       allowedExtensions: dt.extensions.map((e) => e.replaceFirst('.', '')).toList(),
     );
-    if (result == null || result.files.isEmpty) return;
+    if (result == null || result.files.isEmpty || result.files.single.path == null) return;
     final file = File(result.files.single.path!);
     setState(() => _uploadingDocType = docType);
     try {
@@ -266,8 +266,8 @@ class _KelengkapanDokumenScreenState extends State<KelengkapanDokumenScreen> {
                   filled: true,
                   fillColor: Theme.of(context).cardColor,
                 ),
-                items: _loadingJobs
-                    ? null
+                items: _loadingJobs || _jobs.isEmpty
+                    ? [const DropdownMenuItem(value: null, child: Text('Memuat...'))]
                     : _jobs.map((j) => DropdownMenuItem(value: j.id, child: Text(j.name, overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: (v) {
                   setState(() => _selectedJobId = v);
@@ -328,7 +328,7 @@ class _KelengkapanDokumenScreenState extends State<KelengkapanDokumenScreen> {
                       isUploading: isUploading,
                       onUpload: () => _uploadDocument(dt.key),
                       onDelete: () => _deleteDocument(dt.key),
-                      onPreview: doc != null ? () => _previewDocument(doc!) : null,
+                      onPreview: doc != null ? () => _previewDocument(doc) : null,
                     );
                   },
                   childCount: docTypes.length,

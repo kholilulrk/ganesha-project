@@ -38,12 +38,12 @@ class _ProfileBarState extends State<ProfileBar> {
             child: CircleAvatar(
               radius: 18,
               backgroundColor: Colors.white.withOpacity(0.2),
-              backgroundImage: user?.photo != null
+              backgroundImage: user?.photo?.isNotEmpty == true
                   ? NetworkImage('${ApiService.baseUploadUrl}${user!.photo}')
                   : null,
-              child: user?.photo == null
+              child: user?.photo?.isNotEmpty != true
                   ? Text(
-                      (user?.name ?? '?')[0].toUpperCase(),
+                      ((user?.name.isNotEmpty == true) ? user!.name[0] : '?').toUpperCase(),
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
                     )
                   : null,

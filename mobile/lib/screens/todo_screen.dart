@@ -132,7 +132,6 @@ class _TodoScreenState extends State<TodoScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final currentUserId = auth.user?.id ?? 0;
-    final currentRole = auth.user?.role ?? '';
     final assignableUsers = _allUsers.where((u) => u.role != 'Super Admin').toList();
     final theme = Theme.of(context);
 

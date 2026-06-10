@@ -265,7 +265,7 @@ class _JobListScreenState extends State<JobListScreen> {
       String token = job.shareToken ?? '';
       if (token.isEmpty) {
         final res = await JobService.generateShareLink(job.id);
-        token = res['share_token'] as String;
+        token = res['share_token'] as String? ?? '';
       }
       final url = '${ApiService.baseUrl.replaceAll('/api', '')}/pekerjaan/shared/$token';
       await Clipboard.setData(ClipboardData(text: url));

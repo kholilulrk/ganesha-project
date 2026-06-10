@@ -119,11 +119,6 @@ class _MonitoringSuratScreenState extends State<MonitoringSuratScreen> {
     }
   }
 
-  String _formatDate(DateTime d) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -196,7 +191,7 @@ class _MonitoringSuratScreenState extends State<MonitoringSuratScreen> {
                         SliverToBoxAdapter(
                           child: _buildForm(theme),
                         ),
-                      if (_surats.isEmpty)
+                      if (_surats.isEmpty && !_showForm)
                         SliverFillRemaining(
                           child: Center(
                             child: Column(
@@ -367,7 +362,6 @@ class _SuratCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpired = surat.isExpired;
     final isExpiring = surat.isExpiring;
-    final theme = Theme.of(context);
 
     Color? borderColor;
     List<Color>? gradientColors;

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/document.dart';
@@ -11,7 +10,6 @@ import '../models/user.dart';
 import '../services/document_service.dart';
 import '../services/user_service.dart';
 import '../services/api_service.dart';
-import '../providers/auth_provider.dart';
 
 class DocumentManagementScreen extends StatefulWidget {
   const DocumentManagementScreen({super.key});
@@ -23,7 +21,6 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
   List<Document> _documents = [];
   List<User> _allUsers = [];
   bool _loading = true;
-  String? _error;
   String? _toast;
 
   @override
@@ -47,7 +44,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _toast = e.toString(); _loading = false; });
     }
   }
 
@@ -66,6 +63,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
     List<int> sharedTo = [];
     File? selectedFile;
     bool submitting = false;
+    bool saved = false;
 
     if (editId != null) {
       final doc = _documents.firstWhere((d) => d.id == editId);
@@ -160,7 +158,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                         type: FileType.custom,
                         allowedExtensions: ['pdf', 'xls', 'xlsx', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
                       );
-                      if (result != null && result.files.isNotEmpty) {
+                      if (result != null && result.files.isNotEmpty && result.files.single.path != null) {
                         setDialogState(() => selectedFile = File(result.files.single.path!));
                       }
                     },
@@ -252,7 +250,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                                 'shared_to': sharedTo.join(','),
                               });
                             }
-                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (ctx.mounted) { saved = true; Navigator.pop(ctx); }
                           } catch (e) {
                             setDialogState(() => submitting = false);
                             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -272,6 +270,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
       ),
     );
 
+    if (!saved) return;
     _showToast(editId != null ? 'Dokumen berhasil diperbarui' : 'Dokumen berhasil diupload');
     await _loadAll();
   }
@@ -294,7 +293,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
       _showToast('Dokumen berhasil dihapus');
       await _loadAll();
     } catch (e) {
-      setState(() => _error = 'Gagal menghapus data');
+      _showToast('Gagal menghapus data');
     }
   }
 
@@ -339,7 +338,8 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -439,17 +439,9 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
     setState(() {});
-  }
-
-  String _sharedToNames(String? sharedTo) {
-    if (sharedTo == null || sharedTo.isEmpty) return '-';
-    final ids = sharedTo.split(',').map((s) => int.tryParse(s.trim()) ?? 0).where((id) => id > 0).toList();
-    return ids.map((id) {
-      final u = _allUsers.cast<User?>().firstWhere((u) => u!.id == id, orElse: () => null);
-      return u?.name ?? '#$id';
-    }).join(', ');
   }
 
   Color _tipeColor(String tipe) {
@@ -471,16 +463,6 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
       default: return Icons.image;
     }
   }
-
-  String _formatDate(String? d) {
-    if (d == null || d.isEmpty) return '-';
-    try {
-      final dt = DateTime.parse(d);
-      return '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
-    } catch (_) { return '-'; }
-  }
-
-  static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
   @override
   Widget build(BuildContext context) {
@@ -545,14 +527,28 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
           Expanded(
             child: Stack(
               children: [
-                _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : RefreshIndicator(
-                        onRefresh: _loadAll,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                          itemCount: _documents.length,
-                          itemBuilder: (_, i) {
+                if (_loading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_documents.isEmpty)
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.folder_open_rounded, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text('Belum ada dokumen', style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Text('Tambahkan dokumen pekerjaan', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+                      ],
+                    ),
+                  )
+                else
+                  RefreshIndicator(
+                    onRefresh: _loadAll,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      itemCount: _documents.length,
+                      itemBuilder: (_, i) {
                             final doc = _documents[i];
                             final dc = _tipeColor(doc.tipeDokumen);
                             return Container(
@@ -639,7 +635,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                           },
                         ),
                       ),
-                if (_toast != null)
+                  if (_toast != null)
                   Positioned(
                     bottom: 24, left: 24, right: 24,
                     child: Material(

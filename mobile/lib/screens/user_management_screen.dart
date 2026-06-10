@@ -197,16 +197,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
-  String _formatDate(String? d) {
-    if (d == null || d.isEmpty) return '-';
-    try {
-      final dt = DateTime.parse(d);
-      return '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
-    } catch (_) { return '-'; }
-  }
-
-  static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();

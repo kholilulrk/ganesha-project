@@ -181,8 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(surat.namaSurat, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                                    Text('${surat.jenisSurat} · ${_sisaHari(surat.masaBerlaku)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                    Text(surat.namaSurat, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text('${surat.jenisSurat} · ${_sisaHari(surat.masaBerlaku)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600), maxLines: 1, overflow: TextOverflow.ellipsis),
                                   ],
                                 ),
                               ),
@@ -299,6 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
       allDocuments = results[1] as List<Document>;
     } catch (_) {}
 
+    if (!mounted) return;
     final pdfDocuments = allDocuments.where((d) => d.isPdf).toList();
 
     await showDialog(

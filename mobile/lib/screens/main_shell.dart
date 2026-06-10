@@ -60,6 +60,7 @@ class _MainShellState extends State<MainShell> {
     final screenList = <Widget>[];
     final titles = <String>[];
     final icons = <IconData>[];
+    int? pekerjaanIndex;
 
     // Dashboard - always
     screenList.add(const HomeScreen());
@@ -68,6 +69,7 @@ class _MainShellState extends State<MainShell> {
 
     // Data Pekerjaan - only if can view
     if (perm.can('pekerjaan', 'view', isSuperAdmin: isSuperAdmin)) {
+      pekerjaanIndex = screenList.length;
       screenList.add(const JobListScreen());
       titles.add('Pekerjaan');
       icons.add(Icons.work_history_rounded);
@@ -146,7 +148,7 @@ class _MainShellState extends State<MainShell> {
                       icon: iconData,
                       label: title,
                       isSelected: isSelected,
-                      showBadge: i == 1 && _showBadge,
+                      showBadge: i == pekerjaanIndex && _showBadge,
                       onTap: () => setState(() => _currentIndex = i),
                     );
                   }),

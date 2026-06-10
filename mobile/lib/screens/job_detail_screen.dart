@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image/image.dart' as img;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -128,15 +128,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     return order;
   }
 
-  String _tabTitle(int idx) {
-    final order = _tabOrder();
-    final t = order[idx];
-    if (t == 3) return 'Detail';
-    if (t == 0) return 'Teknisi';
-    if (t == 1) return 'Logistic';
-    return 'Komentar';
-  }
-
   List<ChecklistItem> _filteredTek() {
     final q = _tekSearch.text.toLowerCase().trim();
     if (q.isEmpty) return _teknisi;
@@ -168,9 +159,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     final url = num.startsWith('0')
         ? 'https://wa.me/62${num.substring(1)}'
         : 'https://wa.me/$num';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Membuka WhatsApp...')),
-    );
+    launchUrl(Uri.parse(url));
   }
 
   String _formatDate(String? d) {
@@ -187,19 +176,16 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     final size = await file.length();
     if (size < 1024 * 1024) return file;
     try {
+      final bytes = await file.readAsBytes();
+      final image = img.decodeImage(bytes);
+      if (image == null) return file;
+      final resized = img.copyResize(image, width: 1920, height: 1080);
+      final compressed = img.encodeJpg(resized, quality: 50);
       final dir = (await getTemporaryDirectory()).path;
       final name = DateTime.now().millisecondsSinceEpoch.toString();
-      final xfile = await FlutterImageCompress.compressAndGetFile(
-        file.path,
-        '$dir/$name.jpg',
-        quality: 50,
-        minWidth: 1920,
-        minHeight: 1080,
-      );
-      if (xfile != null) {
-        final result = File(xfile.path);
-        if (await result.length() < size) return result;
-      }
+      final outFile = File('$dir/$name.jpg');
+      await outFile.writeAsBytes(compressed);
+      if (await outFile.length() < size) return outFile;
     } catch (_) {}
     return file;
   }
@@ -975,7 +961,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                                 radius: 14,
                                 backgroundColor: const Color(0xFF4F46E5).withOpacity(0.1),
                                 child: Text(
-                                  (c['name']?.toString().substring(0, 1) ?? '?').toUpperCase(),
+                                  ((c['name']?.toString().isNotEmpty == true) ? c['name']!.toString()[0] : '?').toUpperCase(),
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
                                 ),
                               ),
@@ -1028,7 +1014,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                                     radius: 10,
                                     backgroundColor: Colors.grey.shade200,
                                     child: Text(
-                                      (r['name']?.toString().substring(0, 1) ?? '?').toUpperCase(),
+                                      ((r['name']?.toString().isNotEmpty == true) ? r['name']!.toString()[0] : '?').toUpperCase(),
                                       style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
                                     ),
                                   ),

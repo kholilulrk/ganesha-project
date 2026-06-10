@@ -102,7 +102,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final user = auth.user;
-    final theme = Theme.of(context);
 
     if (user == null) {
       return Scaffold(
@@ -147,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
                   child: photoUrl == null
                       ? Text(
-                          user.name[0].toUpperCase(),
+                          user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
                           style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
                         )
                       : null,

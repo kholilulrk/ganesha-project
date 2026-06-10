@@ -97,9 +97,14 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      if (!mounted) return;
       await context.read<AuthProvider>().login(targetUsername, targetPassword);
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
   }
 
   @override
@@ -156,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                          _obscure ? Icons.visibility_off : Icons.visibility),
+                          _obscure ? Icons.visibility : Icons.visibility_off),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),

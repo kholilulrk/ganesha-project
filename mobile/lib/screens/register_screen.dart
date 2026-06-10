@@ -16,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedRole = 'Teknisi';
   String? _error;
   bool _obscure = true;
+  bool _obscureConfirm = true;
 
   final _roles = ['Teknisi', 'Logistic', 'Administrasi'];
 
@@ -123,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                          _obscure ? Icons.visibility_off : Icons.visibility),
+                          _obscure ? Icons.visibility : Icons.visibility_off),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),
@@ -133,11 +134,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: _confirmC,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Konfirmasi Password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                          _obscureConfirm ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
                   ),
-                  obscureText: true,
+                  obscureText: _obscureConfirm,
                   onSubmitted: (_) => _register(),
                 ),
                 if (_error != null) ...[

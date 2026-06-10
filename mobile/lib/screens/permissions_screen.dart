@@ -72,6 +72,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     try {
       await PermissionService.update(role, _editedPerms);
       _allPermissions[role] = List.from(_editedPerms);
+      if (!mounted) return;
       context.read<PermissionProvider>().load();
       setState(() {
         _success = 'Izin untuk $role berhasil disimpan';
@@ -98,6 +99,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     if (confirm != true) return;
     try {
       await PermissionService.reset();
+      if (!mounted) return;
       context.read<PermissionProvider>().load();
       final perms = await PermissionService.getAllPermissions();
       final grouped = <String, List<String>>{};

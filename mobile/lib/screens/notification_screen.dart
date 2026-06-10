@@ -66,22 +66,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _notifications.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.notifications_none_rounded, size: 64, color: Colors.grey.shade400),
-                        const SizedBox(height: 16),
-                        Text('Tidak ada notifikasi', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _notifications.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.notifications_none_rounded, size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text('Tidak ada notifikasi', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: _notifications.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -112,7 +112,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 4),
                               Text(n.body, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 4),
                               Text(_formatDate(n.createdAt), style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
@@ -126,7 +125,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       );
                     },
                   ),
-      ),
+                ),
     );
   }
 

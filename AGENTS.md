@@ -1,8 +1,10 @@
-# Gap Analysis: Web → Mobile Flutter
+# Status Fitur Mobile Android
 
-## ✅ Already in Mobile
+Semua fitur sudah diimplementasi di mobile. Tidak ada gap dengan web.
 
-| Fitur | Status |
+## ✅ Selesai
+
+| Fitur | Keterangan |
 |---|---|
 | Login/Register | ✅ |
 | Dashboard stat cards | ✅ |
@@ -16,30 +18,31 @@
 | WhatsApp contact buttons | ✅ |
 | Dark/Light mode | ✅ |
 | Role-based navigation | ✅ |
+| To-Do List (assignee, filter, toggle) | ✅ |
+| Monitoring Aktif Surat (CRUD SIK/SC, expiring) | ✅ |
+| Kelengkapan Dokumen (6 jenis, 4 step, 14 tahap) | ✅ |
+| Pengguna (User Management) | ✅ |
+| Atur Akses (Permissions) | ✅ |
+| Job CRUD (Create/Edit/Delete) | ✅ |
+| Document Management (tipe badge, download, share) | ✅ |
+| Selesaikan Pekerjaan | ✅ |
+| Quick Create Job dari Dashboard | ✅ |
+| Expiring Letters Warning di Dashboard | ✅ |
+| Recent Pending Jobs di Dashboard | ✅ |
+| Share Link Generation | ✅ |
+| Filter Lanjutan Pekerjaan (status + role) | ✅ |
+| SPEKTEK PDF Reference | ✅ |
+| App Icon + Splash Screen (branded) | ✅ |
 
-## ❌ Belum Ada di Mobile
+## ⏳ Push Notification (kode siap, butuh Firebase config)
 
-1. **To-Do List** — Halaman todo dengan assignee, filter All/Pending/Done, toggle selesai.
-2. **Monitoring Aktif Surat** — CRUD SIK/SC, perhitungan kadaluarsa, warna baris. 🔜 Kerjakan nanti.
-3. **Kelengkapan Dokumen** — 6 jenis dokumen per job, verifikasi 4 step, progress 14 tahap. 🔜 Kerjakan nanti.
-4. **Pengguna (User Management)** — CRUD user oleh Super Admin.
-5. **Atur Akses (Permissions)** — Granular permission per role per resource.
-6. **Job CRUD (Create/Edit/Delete)** — Buat, edit, hapus pekerjaan via modal. 🔜 Kerjakan nanti.
-7. **Document Management (Dokumen)** — Halaman dokumen dengan tipe badge, download, share.
-8. **Selesaikan Pekerjaan** — Tombol complete saat semua checklist selesai.
-9. **Quick Create Job dari Dashboard** — Modal langsung dari dashboard.
-10. **Expiring Letters Warning** — Dashboard tampilkan surat kadaluarsa ≤7 hari.
-11. **Recent Pending Jobs** — Dashboard tampilkan daftar recent pending.
-12. **Share Link Generation** — Generate + copy link share.
-13. **Filter Lanjutan Pekerjaan** — Filter by status + share role.
-14. **SPEKTEK PDF Reference** — Attach PDF referensi saat create/edit job.
-15. **Collapsible Sidebar** — Sidebar bisa collapse ke ikon saja. 🔜 Kerjakan nanti.
+- **Mobile**: `notification_service.dart` (FCM init, token register, local notif)
+- **Mobile**: `notification_screen.dart` (list notif, badge count)
+- **Backend**: `services/fcm.go` (FCM v1 API via OAuth2 JWT)
+- **Backend**: `controllers/notification_controller.go` (register, list, mark read)
+- **Backend**: Routes `/fcm/*` dan `/notifications/*` sudah terdaftar
 
-## ✅ Push Notification (New — Code selesai, butuh Firebase project)
-- Backend: `models/notification.go`, `services/fcm.go`, `controllers/notification_controller.go`, routes untuk register/unregister token, get/mark-notifications
-- Notifikasi dikirim saat: job baru dibuat (SendPushToAllUsers), checklist item baru (ke role terkait), dokumen baru diupload (SendPushToAllUsers)
-- Mobile: `notification_service.dart` (FCM init + token register), `notification_api_service.dart`, `notification_model.dart`, `notification_screen.dart`
-- `main_shell.dart`: tambah tab Notif dengan badge count
-- `main.dart`: Firebase init, `pubspec.yaml`: firebase_core + firebase_messaging
-- Android config: `settings.gradle.kts` + `app/build.gradle.kts` + placeholder `google-services.json`
-- **Bloked**: butuh Firebase project (google-services.json asli + FCM_SERVER_KEY) untuk build release dan push nyata
+**To do untuk enable push notification:**
+1. Download Firebase Service Account JSON dari Firebase Console
+2. Simpan di server, set `FCM_SERVICE_ACCOUNT_PATH` di `.env.production`
+3. Build APK release (debug FCM mungkin terbatas)

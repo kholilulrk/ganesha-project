@@ -280,7 +280,7 @@ class _SharedScreenState extends State<SharedScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                ...(_teknisiItems as List).map((item) {
+                                ...(_teknisiItems).map((item) {
                                   final isDone = item['status'] == 'selesai' || item['completed'] == true;
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 8),
