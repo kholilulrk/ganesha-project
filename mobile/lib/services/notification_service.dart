@@ -48,7 +48,7 @@ class NotificationService with WidgetsBindingObserver {
       NotificationApiService.registerFCMToken(newToken);
     });
 
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen((msg) => _handleForegroundMessage(msg));
     FirebaseMessaging.onMessageOpenedApp.listen((_) => refreshUnreadCount());
 
     final initialMessage = await _messaging.getInitialMessage();
@@ -74,33 +74,37 @@ class NotificationService with WidgetsBindingObserver {
     );
   }
 
-  void _handleForegroundMessage(RemoteMessage message) {
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
     final title = message.notification?.title ?? message.data['title'] ?? 'Notifikasi';
     final body = message.notification?.body ?? message.data['body'] ?? '';
+    final payload = message.data['type'] ?? '';
 
-    _localNotif.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'ganesha_channel',
-          'Notifikasi Ganesha',
-          channelDescription: 'Notifikasi aplikasi Ganesha Energi',
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: true,
-          enableVibration: true,
+    try {
+      await _localNotif.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'ganesha_channel',
+            'Notifikasi Ganesha',
+            channelDescription: 'Notifikasi aplikasi Ganesha Energi',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-    );
+        payload: payload,
+      );
+    } catch (_) {}
 
-    refreshUnreadCount();
+    await refreshUnreadCount();
   }
 
   Future<void> refreshUnreadCount() async {

@@ -202,6 +202,8 @@ func sendFCMV1(token, title, body, notifType, refID, refType, bearer, projectID 
 		"type":     notifType,
 		"ref_id":   refID,
 		"ref_type": refType,
+		"title":    title,
+		"body":     body,
 	}
 	msg.Message.Android = &FCMAndroidConfig{
 		Priority: "high",

@@ -81,7 +81,7 @@ func AddChecklistItem(c *gin.Context) {
 			for _, u := range targetUsers {
 				go services.SendPushToUser(u.ID,
 					"Tugas "+roleLabel+" Baru",
-					""+input.Item+" di pekerjaan \""+job.Name+"\"",
+					input.Item+" di pekerjaan \""+job.Name+"\"",
 					"new_task", job.ID, "job",
 				)
 			}
