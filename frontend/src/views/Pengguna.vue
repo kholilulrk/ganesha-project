@@ -14,6 +14,7 @@
       <table class="user-table">
         <thead>
           <tr>
+            <th class="th-id">#</th>
             <th>Nama</th>
             <th>Username</th>
             <th>Role</th>
@@ -24,6 +25,7 @@
         </thead>
         <tbody>
           <tr v-for="u in users" :key="u.ID" class="table-row">
+            <td class="td-id">{{ u.ID }}</td>
             <td class="td-name">{{ u.name }}</td>
             <td>{{ u.username }}</td>
             <td>
@@ -305,6 +307,16 @@ onMounted(() => {
 .th-actions {
   text-align: center;
   width: 100px;
+}
+
+.th-id {
+  text-align: center;
+  width: 50px;
+}
+
+.td-id {
+  text-align: center;
+  font-weight: 500;
 }
 
 .table-row {
