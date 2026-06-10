@@ -97,8 +97,8 @@ class _MainShellState extends State<MainShell> {
 
     }
 
-    // Pengguna - only if can manage users
-    if (perm.can('users', 'manage', isSuperAdmin: isSuperAdmin)) {
+    // Pengguna - Super Admin only
+    if (isSuperAdmin) {
       screenList.add(const UserManagementScreen());
       titles.add('Pengguna');
       icons.add(Icons.people_alt_rounded);

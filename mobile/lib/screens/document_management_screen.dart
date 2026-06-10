@@ -116,8 +116,44 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                     onChanged: (v) => setDialogState(() => tipeDokumen = v ?? ''),
                   ),
                   const SizedBox(height: 12),
+                  if (editId != null) ...[
+                    const Text('File Saat Ini', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () {
+                        final doc = _documents.firstWhere((d) => d.id == editId);
+                        final fileUrl = '${ApiService.baseUploadUrl}/${doc.filePath.replaceAll('\\', '/')}';
+                        launchUrl(Uri.parse(fileUrl), mode: LaunchMode.externalApplication);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade100),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.description, size: 18, color: Colors.blue.shade600),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _documents.firstWhere((d) => d.id == editId).filePath.split('/').last,
+                                style: TextStyle(fontSize: 13, color: Colors.blue.shade700),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Icon(Icons.open_in_new, size: 16, color: Colors.blue.shade400),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Ganti File (opsional)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 4),
+                  ],
                   GestureDetector(
-                    onTap: editId == null ? () async {
+                    onTap: () async {
                       final result = await FilePicker.platform.pickFiles(
                         type: FileType.custom,
                         allowedExtensions: ['pdf', 'xls', 'xlsx', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
@@ -125,7 +161,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                       if (result != null && result.files.isNotEmpty) {
                         setDialogState(() => selectedFile = File(result.files.single.path!));
                       }
-                    } : null,
+                    },
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -204,7 +240,7 @@ class _DocumentManagementScreenState extends State<DocumentManagementScreen> {
                                 'deskripsi': descC.text.trim(),
                                 'share_mode': shareMode,
                                 'shared_to': sharedTo.join(','),
-                              });
+                              }, file: selectedFile);
                             } else {
                               await DocumentService.create(selectedFile!, {
                                 'nama_dokumen': nameC.text.trim(),

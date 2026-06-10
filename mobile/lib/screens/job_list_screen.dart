@@ -446,7 +446,7 @@ class _JobListScreenState extends State<JobListScreen> {
                                 onEdit: canEdit ? () => _showJobForm(editJob: job) : null,
                                 onDelete: canDelete ? () => _deleteJob(job.id) : null,
                                 onShare: () => _shareJob(job),
-                                onComplete: () => _completeJob(job),
+                                onComplete: role == 'Super Admin' || role == 'Administrasi' ? () => _completeJob(job) : null,
                                 spektekUrl: job.spektek,
                               ),
                             );

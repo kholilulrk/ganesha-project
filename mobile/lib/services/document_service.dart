@@ -32,8 +32,28 @@ class DocumentService {
     throw ApiException('Gagal upload dokumen');
   }
 
-  static Future<void> update(int id, Map<String, dynamic> body) async {
-    await ApiService.put('/documents/$id', body);
+  static Future<void> update(int id, Map<String, dynamic> fields, {File? file}) async {
+    if (file != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      final uri = Uri.parse('${ApiService.baseUrl}/documents/$id');
+      final request = http.MultipartRequest('PUT', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields.addAll(fields.map((k, v) => MapEntry(k, v.toString())));
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      if (response.body.isEmpty) return;
+      final data = jsonDecode(response.body);
+      if (data is Map<String, dynamic>) {
+        if (response.statusCode >= 200 && response.statusCode < 300) return;
+        throw ApiException(data['error'] ?? 'Gagal update dokumen');
+      }
+      if (response.statusCode >= 200 && response.statusCode < 300) return;
+      throw ApiException('Gagal update dokumen');
+    } else {
+      await ApiService.put('/documents/$id', fields);
+    }
   }
 
   static Future<void> delete(int id) async {

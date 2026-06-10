@@ -267,15 +267,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _QuickActions(
                 user: user,
                 onQuickCreate: canQuickCreate ? _showQuickCreateForm : null,
-                onViewJobs: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(
-                    body: Column(children: [
-                      const ProfileBar(),
-                      Expanded(child: const JobListScreen()),
-                    ]),
-                  )));
-                  _loadStats();
-                },
               ),
             ),
           ],
@@ -535,8 +526,7 @@ class _StatItem extends StatelessWidget {
 class _QuickActions extends StatelessWidget {
   final dynamic user;
   final VoidCallback? onQuickCreate;
-  final VoidCallback? onViewJobs;
-  const _QuickActions({required this.user, this.onQuickCreate, this.onViewJobs});
+  const _QuickActions({required this.user, this.onQuickCreate});
 
   @override
   Widget build(BuildContext context) {
@@ -555,13 +545,6 @@ class _QuickActions extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
-        _ActionTile(
-          icon: Icons.work_history_rounded,
-          title: 'Data Pekerjaan',
-          subtitle: 'Lihat dan kelola pekerjaan',
-          onTap: onViewJobs ?? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JobListScreen())),
-          iconColor: const Color(0xFF4F46E5),
-        ),
       ],
     );
   }
