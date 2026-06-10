@@ -73,7 +73,6 @@ const error = ref('')
 
 const currentRole = computed(() => auth.user?.role || '')
 const assignableUsers = computed(() => {
-  if (currentRole.value === 'Super Admin') return allUsers.value
   return allUsers.value.filter(u => u.role !== 'Super Admin')
 })
 const pendingCount = computed(() => todos.value.filter(t => t.status === 'pending').length)

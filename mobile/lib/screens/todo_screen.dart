@@ -133,10 +133,7 @@ class _TodoScreenState extends State<TodoScreen> {
     final auth = context.watch<AuthProvider>();
     final currentUserId = auth.user?.id ?? 0;
     final currentRole = auth.user?.role ?? '';
-    final isSuperAdmin = currentRole == 'Super Admin';
-    final assignableUsers = isSuperAdmin
-        ? _allUsers
-        : _allUsers.where((u) => u.role != 'Super Admin').toList();
+    final assignableUsers = _allUsers.where((u) => u.role != 'Super Admin').toList();
     final theme = Theme.of(context);
 
     return Scaffold(

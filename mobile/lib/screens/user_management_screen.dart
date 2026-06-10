@@ -89,7 +89,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   DropdownButtonFormField<String>(
                     value: role.isEmpty ? null : role,
                     decoration: const InputDecoration(labelText: 'Role'),
-                    items: ['Super Admin', 'Administrasi', 'Teknisi', 'Logistic']
+                    items: ['Administrasi', 'Teknisi', 'Logistic']
                         .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                         .toList(),
                     onChanged: (v) => setDialogState(() => role = v ?? ''),
