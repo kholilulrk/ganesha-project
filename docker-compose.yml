@@ -31,8 +31,10 @@ services:
       SERVER_PORT: "8080"
       JWT_SECRET: ${JWT_SECRET:-secret-key-change-in-production}
       APP_URL: ${APP_URL:-http://203.194.115.28}
+      FCM_SERVICE_ACCOUNT_PATH: /app/fcm-key.json
     volumes:
       - uploads_data:/app/uploads
+      - ./backend/ganesha-project-69ab0-977795d632a0.json:/app/fcm-key.json:ro
 
   frontend:
     build:
