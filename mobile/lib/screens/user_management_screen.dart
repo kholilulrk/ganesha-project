@@ -48,6 +48,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     String role = '';
     bool submitting = false;
 
+    final currentUserRole = context.read<AuthProvider>().user?.role;
+    final roleOptions = currentUserRole == 'Super Admin'
+        ? ['Super Admin', 'Administrasi', 'Teknisi', 'Logistic']
+        : ['Administrasi', 'Teknisi', 'Logistic'];
+
     if (editId != null) {
       final u = _users.firstWhere((u) => u.id == editId);
       nameC.text = u.name;
@@ -89,7 +94,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   DropdownButtonFormField<String>(
                     value: role.isEmpty ? null : role,
                     decoration: const InputDecoration(labelText: 'Role'),
-                    items: ['Administrasi', 'Teknisi', 'Logistic']
+                    items: roleOptions
                         .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                         .toList(),
                     onChanged: (v) => setDialogState(() => role = v ?? ''),
