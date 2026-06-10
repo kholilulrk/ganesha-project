@@ -474,16 +474,16 @@ class _StatGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _StatItem(icon: Icons.work_history_rounded, label: 'Total Pekerjaan', value: '${stats['total_jobs'] ?? 0}', color: const Color(0xFF4F46E5)),
-      _StatItem(icon: Icons.pending_actions_rounded, label: 'Pending', value: '${stats['pending_jobs'] ?? 0}', color: const Color(0xFFEAB308), onTap: onPendingTap),
-      _StatItem(icon: Icons.trending_up_rounded, label: 'Progress', value: '${stats['uncompleted_jobs'] ?? 0}', color: const Color(0xFF06B6D4), onTap: onProgressTap),
-      _StatItem(icon: Icons.check_circle_rounded, label: 'Selesai', value: '${stats['completed_jobs'] ?? 0}', color: const Color(0xFF22C55E), onTap: onCompletedTap),
+      _StatItem(icon: Icons.work_history_rounded, label: 'Total Pekerjaan', value: '${stats['total_jobs'] ?? 0}', colors: const [Color(0xFF4F46E5), Color(0xFF7C3AED)]),
+      _StatItem(icon: Icons.pending_actions_rounded, label: 'Pending', value: '${stats['pending_jobs'] ?? 0}', colors: const [Color(0xFFF59E0B), Color(0xFFEF4444)], onTap: onPendingTap),
+      _StatItem(icon: Icons.trending_up_rounded, label: 'Progress', value: '${stats['uncompleted_jobs'] ?? 0}', colors: const [Color(0xFF06B6D4), Color(0xFF3B82F6)], onTap: onProgressTap),
+      _StatItem(icon: Icons.check_circle_rounded, label: 'Selesai', value: '${stats['completed_jobs'] ?? 0}', colors: const [Color(0xFF10B981), Color(0xFF059669)], onTap: onCompletedTap),
     ];
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.35),
       itemCount: items.length,
       itemBuilder: (_, i) => ScaleIn(index: i, child: items[i]),
     );
@@ -493,29 +493,57 @@ class _StatGrid extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final IconData icon;
   final String label, value;
-  final Color color;
+  final List<Color> colors;
   final VoidCallback? onTap;
-  const _StatItem({required this.icon, required this.label, required this.value, required this.color, this.onTap});
+  const _StatItem({required this.icon, required this.label, required this.value, required this.colors, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.first.withOpacity(0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(width: 36, height: 36, decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 20)),
-            const SizedBox(height: 6),
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
-            Text(label, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 38, height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1)),
+                  const SizedBox(height: 2),
+                  Text(label, style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.85), fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
