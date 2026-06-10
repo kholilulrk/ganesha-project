@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 	"website-backend/config"
 	"website-backend/models"
 
@@ -36,6 +35,17 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	var existing models.User
+	result := models.DB.Unscoped().Where("username = ?", input.Username).First(&existing)
+	if result.RowsAffected > 0 {
+		if existing.DeletedAt.Valid {
+			models.DB.Unscoped().Delete(&existing)
+		} else {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username sudah digunakan"})
+			return
+		}
+	}
+
 	user := models.User{
 		Name:     input.Name,
 		Username: input.Username,
@@ -44,11 +54,7 @@ func Register(c *gin.Context) {
 	}
 
 	if err := models.DB.Create(&user).Error; err != nil {
-		msg := err.Error()
-		if strings.Contains(msg, "duplicate key") || strings.Contains(msg, "uni_users_username") {
-			msg = "Username sudah digunakan"
-		}
-		c.JSON(http.StatusConflict, gin.H{"error": msg})
+		c.JSON(http.StatusConflict, gin.H{"error": "Username sudah digunakan"})
 		return
 	}
 

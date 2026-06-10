@@ -222,7 +222,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	if err := models.DB.Delete(&user).Error; err != nil {
+	if err := models.DB.Unscoped().Delete(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
