@@ -556,7 +556,8 @@ async function deleteImage(roleKey, itemId, filename) {
 
 async function loadItems(roleKey) {
   try {
-    const res = await checklistAPI.get(props.job.ID, roleKey)
+    const apiRole = roleKey === 'teknisi' ? 'Teknisi' : 'Logistic'
+    const res = await checklistAPI.get(props.job.ID, apiRole)
     if (roleKey === 'teknisi') teknisiItems.value = res.data.items
     else logisticItems.value = res.data.items
   } catch (e) {
