@@ -139,6 +139,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.description_rounded;
       case 'job_completed':
         return Icons.check_circle_rounded;
+      case 'announcement':
+        return Icons.campaign_rounded;
       default:
         return Icons.notifications_rounded;
     }

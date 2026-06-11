@@ -17,6 +17,7 @@ import SphForm from '../views/SphForm.vue'
 import SphDetail from '../views/SphDetail.vue'
 import ActivityLog from '../views/ActivityLog.vue'
 import Vendor from '../views/Vendor.vue'
+import Pengumuman from '../views/Pengumuman.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -37,6 +38,7 @@ const routes = [
   { path: '/sph/detail/:id', name: 'SphDetail', component: SphDetail, meta: { requiresAuth: true } },
   { path: '/activity-log', name: 'ActivityLog', component: ActivityLog, meta: { requiresAuth: true } },
   { path: '/vendor', name: 'Vendor', component: Vendor, meta: { requiresAuth: true } },
+  { path: '/pengumuman', name: 'Pengumuman', component: Pengumuman, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
@@ -47,6 +49,9 @@ const router = createRouter({
 const roleRestricted = (path) => {
   if (path.startsWith('/permissions') || path.startsWith('/pengguna') || path.startsWith('/activity-log')) {
     return ['Super Admin']
+  }
+  if (path.startsWith('/pengumuman')) {
+    return ['Super Admin', 'Administrasi']
   }
   if (path.startsWith('/kelengkapan-dokumen') || path.startsWith('/monitoring-surat') || path.startsWith('/sph') || path.startsWith('/vendor')) {
     return ['Super Admin', 'Administrasi']

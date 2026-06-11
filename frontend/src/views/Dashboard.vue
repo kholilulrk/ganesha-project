@@ -124,6 +124,31 @@
       </div>
     </transition>
 
+    <transition name="toast-slide">
+      <div v-if="showAnnouncementToast" class="announcement-toast" @click="showAnnouncementToast = false">
+        <span class="toast-icon">&#128240;</span>
+        <div class="toast-body">
+          <span class="toast-title">Pengumuman Baru</span>
+          <span class="toast-text">{{ latestAnnouncement?.title }}</span>
+        </div>
+      </div>
+    </transition>
+
+    <div v-if="stats.announcements?.length" class="announcements-section">
+      <div class="section-header">
+        <h2>&#128240; Pengumuman</h2>
+      </div>
+      <div class="announcement-list">
+        <div v-for="a in stats.announcements" :key="a.ID" class="announcement-item">
+          <div class="announcement-header">
+            <span class="announcement-title">{{ a.title }}</span>
+            <span class="announcement-date">{{ formatDate(a.start_at) }} - {{ formatDate(a.end_at) }}</span>
+          </div>
+          <p v-if="a.content" class="announcement-content">{{ a.content }}</p>
+        </div>
+      </div>
+    </div>
+
     <div v-if="stats.expiring_surats?.length" class="section warning-section">
       <div class="section-header">
         <h2>&#9888;&#65039; Surat Akan Kadaluarsa</h2>
@@ -188,6 +213,10 @@ const stats = ref({
   recent_pending: [],
 })
 
+const showAnnouncementToast = ref(false)
+const latestAnnouncement = ref(null)
+let prevAnnouncementIds = []
+
 const showCreateForm = ref(false)
 const createLoading = ref(false)
 const createError = ref('')
@@ -235,11 +264,42 @@ watch(() => createForm.share, () => {
   fetchUsers()
 })
 
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 800
+    osc.type = 'sine'
+    gain.gain.setValueAtTime(0.3, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.3)
+  } catch { /* ignore */ }
+}
+
+function checkNewAnnouncements() {
+  const announcements = stats.value.announcements || []
+  if (!announcements.length) return
+  const currentIds = announcements.map(a => a.ID)
+  const newOnes = announcements.filter(a => !prevAnnouncementIds.includes(a.ID))
+  if (newOnes.length) {
+    latestAnnouncement.value = newOnes[0]
+    showAnnouncementToast.value = true
+    playNotificationSound()
+    setTimeout(() => { showAnnouncementToast.value = false }, 5000)
+  }
+  prevAnnouncementIds = currentIds
+}
+
 onMounted(async () => {
   await perms.load()
   try {
     const res = await dashboardAPI.getStats()
     stats.value = res.data
+    checkNewAnnouncements()
   } catch { /* ignore */ }
   try {
     const res = await documentAPI.getAll()
@@ -498,6 +558,102 @@ async function handleCreateJob() {
   padding: 40px 20px;
   color: var(--text-dim);
   font-size: 14px;
+}
+
+.announcement-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.35);
+  cursor: pointer;
+  max-width: 360px;
+  animation: toastIn 0.4s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.toast-slide-enter-active { animation: toastIn 0.4s ease; }
+.toast-slide-leave-active { transition: opacity 0.3s, transform 0.3s; }
+.toast-slide-leave-to { opacity: 0; transform: translateX(40px); }
+
+.toast-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toast-text {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.announcements-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-light);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.announcement-item {
+  padding: 16px;
+  background: var(--hover-bg);
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.announcement-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.announcement-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.announcement-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .warning-section {

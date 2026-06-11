@@ -25,7 +25,7 @@ func ConnectDatabase() error {
 
 	DB = db
 
-	if err := db.AutoMigrate(&User{}, &Job{}, &TaskChecklist{}, &Permission{}, &JobDocument{}, &JobVerification{}, &Comment{}, &Surat{}, &Document{}, &Todo{}, &CalendarEvent{}, &Sph{}, &SphTeknisi{}, &ActivityLog{}, &AppSetting{}, &Notification{}, &FCMToken{}, &Vendor{}, &PaymentTerm{}); err != nil {
+	if err := db.AutoMigrate(&User{}, &Job{}, &TaskChecklist{}, &Permission{}, &JobDocument{}, &JobVerification{}, &Comment{}, &Surat{}, &Document{}, &Todo{}, &CalendarEvent{}, &Sph{}, &SphTeknisi{}, &ActivityLog{}, &AppSetting{}, &Notification{}, &FCMToken{}, &Vendor{}, &PaymentTerm{}, &Announcement{}); err != nil {
 		return err
 	}
 

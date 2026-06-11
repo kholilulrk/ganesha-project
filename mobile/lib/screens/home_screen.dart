@@ -10,6 +10,7 @@ import '../models/job.dart';
 import '../models/surat.dart';
 import '../models/user.dart';
 import '../models/document.dart';
+import '../models/announcement.dart';
 import '../services/job_service.dart';
 import 'job_detail_screen.dart';
 import '../widgets/animated_entry.dart';
@@ -54,6 +55,13 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
   }
 
+  List<Announcement> get _activeAnnouncements {
+    if (_stats == null || _stats!['announcements'] == null) return [];
+    return (_stats!['announcements'] as List<dynamic>)
+        .map((j) => Announcement.fromJson(j as Map<String, dynamic>))
+        .toList();
+  }
+
   List<Job> get _recentPending {
     if (_stats == null || _stats!['recent_pending'] == null) return [];
     return (_stats!['recent_pending'] as List<dynamic>)
@@ -75,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSuperAdmin = user.role == 'Super Admin';
     final isTeknisiOrLogistic = user.role == 'Teknisi' || user.role == 'Logistic';
     final canQuickCreate = perm.can('pekerjaan', 'create', isSuperAdmin: isSuperAdmin);
+    final activeAnnouncements = _activeAnnouncements;
     final expiringSurats = _expiringSurats;
     final recentPending = _recentPending;
     final theme = Theme.of(context);
@@ -109,6 +118,63 @@ class _HomeScreenState extends State<HomeScreen> {
                 onCompletedTap: () => widget.onNavigateToPekerjaan?.call('done'),
               ),
               const SizedBox(height: 12),
+            ],
+
+            // Active Announcements
+            if (activeAnnouncements.isNotEmpty) ...[
+              FadeSlideIn(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.campaign_rounded, color: Color(0xFF4F46E5), size: 20),
+                          const SizedBox(width: 8),
+                          const Text('Pengumuman', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: const Color(0xFF4F46E5).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                            child: Text('${activeAnnouncements.length}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4F46E5))),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...activeAnnouncements.take(3).map((a) => FadeSlideIn(
+                        index: activeAnnouncements.indexOf(a),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(a.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                ],
+                              ),
+                              if (a.content != null && a.content!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(a.content!, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 3, overflow: TextOverflow.ellipsis),
+                                ),
+                            ],
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
 
             // Expiring Letters Warning

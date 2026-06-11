@@ -108,6 +108,9 @@ func GetDashboardStats(c *gin.Context) {
 	}
 	progresQuery.Count(&progresJobs)
 
+	var activeAnnouncements []models.Announcement
+	models.DB.Where("is_active = ? AND start_at <= ? AND end_at >= ?", true, now, now).Order("created_at DESC").Find(&activeAnnouncements)
+
 	c.JSON(http.StatusOK, gin.H{
 		"pending_jobs":         pendingJobs,
 		"total_jobs":           totalJobs,
@@ -118,5 +121,6 @@ func GetDashboardStats(c *gin.Context) {
 		"uncompleted_jobs":     uncompletedJobs,
 		"recent_pending":       pendingJobsList,
 		"expiring_surats":      expiringSurats,
+		"announcements":        activeAnnouncements,
 	})
 }

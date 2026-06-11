@@ -69,7 +69,11 @@
           <span v-if="!collapsed">Upload Dokumen</span>
         </router-link>
       </template>
-      <router-link v-if="!isLimitedRole" to="/vendor" class="nav-item" active-class="active">
+        <router-link v-if="!isLimitedRole" to="/pengumuman" class="nav-item" active-class="active">
+          <span class="nav-icon">&#128240;</span>
+          <span v-if="!collapsed">Pengumuman</span>
+        </router-link>
+        <router-link v-if="!isLimitedRole" to="/vendor" class="nav-item" active-class="active">
         <span class="nav-icon">&#127970;</span>
         <span v-if="!collapsed">Vendor</span>
       </router-link>
