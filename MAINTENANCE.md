@@ -159,3 +159,13 @@ docker exec -it ganesha-project-db-1 psql -U postgres -d ganesha
 | Bulanan | Update dependensi | `go get -u`, `npm update` |
 | Bulanan | Prune Docker | `docker system prune -f` |
 | 3 Bulan | Update image base | rebuild ulang `docker compose build --no-cache` |
+
+---
+
+## Catatan — Service di Server
+
+| Project | Akses |
+|---|---|
+| **Ganesha** frontend | `http://<ip>` (port 80) |
+| **Project-Kita** frontend | `http://<ip>:8083` |
+| **Keuangan** frontend | `http://<ip>:8082` |
