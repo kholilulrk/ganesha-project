@@ -61,6 +61,7 @@
             <div class="form-group">
               <label>Role</label>
               <select v-model="form.role" required>
+                <option value="Super Admin">Super Admin</option>
                 <option value="Administrasi">Administrasi</option>
                 <option value="Teknisi">Teknisi</option>
                 <option value="Logistic">Logistic</option>
