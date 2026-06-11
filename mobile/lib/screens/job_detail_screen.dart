@@ -575,15 +575,20 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     );
   }
 
+  Future<void> _onRefresh() => _loadAll();
+
   Widget _buildDetailTab({bool canSelesaikan = false}) {
     final theme = Theme.of(context);
     final job = widget.job;
     final user = context.watch<AuthProvider>().user;
     final isTeknisiLogistic = user?.role == 'Teknisi' || user?.role == 'Logistic';
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
         children: [
           Card(
             child: Padding(
@@ -694,6 +699,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           const SizedBox(height: 16),
           _buildActionButtons(canSelesaikan: canSelesaikan),
         ],
+      ),
       ),
     );
   }
@@ -819,11 +825,19 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           ),
         ),
         Expanded(
-          child: _filteredTek().isEmpty
-              ? Center(child: Text('Belum ada tugas', style: TextStyle(color: Colors.grey.shade500)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _filteredTek().length,
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: _filteredTek().isEmpty
+                ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: Center(child: Text('Belum ada tugas', style: TextStyle(color: Colors.grey.shade500))),
+                    ),
+                  ])
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredTek().length,
                   itemBuilder: (_, i) => _TeknisiCard(
                     item: _filteredTek()[i],
                     canManage: canManage,
@@ -840,6 +854,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                     onDelete: () => _deleteItem('teknisi', _filteredTek()[i].id),
                   ),
                 ),
+              ),
         ),
         if (canManage)
           Container(
@@ -893,11 +908,19 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           ),
         ),
         Expanded(
-          child: _filteredLog().isEmpty
-              ? Center(child: Text('Belum ada tugas', style: TextStyle(color: Colors.grey.shade500)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _filteredLog().length,
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: _filteredLog().isEmpty
+                ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: Center(child: Text('Belum ada tugas', style: TextStyle(color: Colors.grey.shade500))),
+                    ),
+                  ])
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredLog().length,
                   itemBuilder: (_, i) => _LogisticCard(
                     item: _filteredLog()[i],
                     canManage: canManage,
@@ -917,6 +940,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                     onDelete: () => _deleteItem('logistic', _filteredLog()[i].id),
                   ),
                 ),
+              ),
         ),
         if (canManage)
           Container(
@@ -968,9 +992,12 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     return Column(
       children: [
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
               if (topComments.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(32),
@@ -1088,6 +1115,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 );
               }),
             ],
+          ),
           ),
         ),
         Container(
