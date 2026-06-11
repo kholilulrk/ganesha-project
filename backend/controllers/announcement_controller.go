@@ -26,9 +26,8 @@ func GetAnnouncements(c *gin.Context) {
 }
 
 func GetActiveAnnouncements(c *gin.Context) {
-	now := time.Now()
 	var announcements []models.Announcement
-	if err := models.DB.Where("is_active = ? AND start_at <= ? AND end_at >= ?", true, now, now).Order("created_at DESC").Find(&announcements).Error; err != nil {
+	if err := models.DB.Where("is_active = ? AND DATE(start_at) <= CURRENT_DATE AND DATE(end_at) >= CURRENT_DATE", true).Order("created_at DESC").Find(&announcements).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
