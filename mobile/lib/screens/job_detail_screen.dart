@@ -8,8 +8,6 @@ import 'package:image/image.dart' as img;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:file_picker/file_picker.dart';
-import 'package:video_compress/video_compress.dart';
 import 'package:gal/gal.dart';
 import '../models/job.dart';
 import '../models/checklist_item.dart';
@@ -213,20 +211,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     return file;
   }
 
-  Future<File> _compressVideo(File file) async {
-    try {
-      final info = await VideoCompress.compressVideo(
-        file.path,
-        quality: VideoQuality.LowQuality,
-        deleteOrigin: false,
-      );
-      if (info != null && info.path != null) {
-        return File(info.path!);
-      }
-    } catch (_) {}
-    return file;
-  }
-
   static const _months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
     'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
@@ -327,7 +311,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   Future<void> _pickImages(String role, int itemId) async {
-    final source = await showModalBottomSheet<String>(
+    final source = await showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -343,12 +327,12 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Kamera'),
-                onTap: () => Navigator.pop(ctx, 'camera'),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Galeri'),
-                onTap: () => Navigator.pop(ctx, 'gallery'),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
               ),
             ],
           ),
@@ -356,6 +340,14 @@ class _JobDetailScreenState extends State<JobDetailScreen>
       ),
     );
     if (source == null) return;
+    final List<XFile> picked;
+    if (source == ImageSource.camera) {
+      final single = await _picker.pickImage(source: ImageSource.camera);
+      picked = single != null ? [single] : [];
+    } else {
+      picked = await _picker.pickMultiImage();
+    }
+    if (picked.isEmpty) return;
     final item = role == 'teknisi'
         ? _teknisi.firstWhere((i) => i.id == itemId)
         : _logistic.firstWhere((i) => i.id == itemId);
@@ -363,30 +355,14 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     final existing = item.imageList.length;
     final allowed = maxImages - existing;
     if (allowed <= 0) {
-      _showError(role == 'teknisi' ? 'Maksimal 3 gambar' : 'Maksimal 1 file');
+      _showError(role == 'teknisi' ? 'Maksimal 3 gambar' : 'Maksimal 1 gambar');
       return;
     }
+    final toUpload = picked.take(allowed).toList();
     try {
-      if (source == 'camera') {
-        final single = await _picker.pickImage(source: ImageSource.camera);
-        if (single == null) return;
-        final compressed = await _compressFile(File(single.path));
+      for (final x in toUpload) {
+        final compressed = await _compressFile(File(x.path));
         await ChecklistService.uploadImage(widget.job.id, itemId, role, compressed);
-      } else {
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.media,
-          allowMultiple: true,
-        );
-        if (result == null || result.files.isEmpty) return;
-        final toUpload = result.files.take(allowed).toList();
-        for (final f in toUpload) {
-          if (f.path == null) continue;
-          final file = File(f.path!);
-          final ext = f.extension?.toLowerCase() ?? '';
-          final isVideo = ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext);
-          final compressed = isVideo ? await _compressVideo(file) : await _compressFile(file);
-          await ChecklistService.uploadImage(widget.job.id, itemId, role, compressed);
-        }
       }
       await _loadAll();
     } catch (e) {
@@ -1563,11 +1539,6 @@ class _ImageThumb extends StatelessWidget {
   final VoidCallback onTap, onDelete;
   const _ImageThumb({required this.url, required this.canDelete, required this.onTap, required this.onDelete});
 
-  bool get _isVideo {
-    final ext = url.split('.').last.toLowerCase();
-    return ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext);
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -1576,13 +1547,12 @@ class _ImageThumb extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              width: 48, height: 48,
-              child: _isVideo
-                  ? Container(color: Colors.grey.shade800, child: const Icon(Icons.play_circle_fill, color: Colors.white, size: 28))
-                  : Image.network(url, width: 48, height: 48, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image, size: 20)),
-                    ),
+            child: Image.network(
+              url, width: 48, height: 48, fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 48, height: 48, color: Colors.grey.shade200,
+                child: const Icon(Icons.broken_image, size: 20),
+              ),
             ),
           ),
           if (canDelete)
@@ -1607,11 +1577,6 @@ class _ImagePreviewOverlay extends StatelessWidget {
   final String url;
   final VoidCallback onClose;
   const _ImagePreviewOverlay({required this.url, required this.onClose});
-
-  bool get _isVideo {
-    final ext = url.split('.').last.toLowerCase();
-    return ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1644,78 +1609,54 @@ class _ImagePreviewOverlay extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              if (_isVideo)
-                Column(
-                  children: [
-                    const Icon(Icons.play_circle_fill, color: Colors.white, size: 64),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        final uri = Uri.parse(url);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                      icon: const Icon(Icons.open_in_new, size: 18),
-                      label: const Text('Buka Video'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4F46E5),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                )
-              else
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.9,
-                      maxHeight: MediaQuery.of(context).size.height * 0.6,
-                    ),
-                    child: Image.network(url, fit: BoxFit.contain),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
                   ),
+                  child: Image.network(url, fit: BoxFit.contain),
                 ),
-              if (!_isVideo) ...[
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    try {
-                      final response = await http.get(Uri.parse(url));
-                      if (response.statusCode == 200) {
-                        final dir = await getTemporaryDirectory();
-                        final name = url.split('/').last;
-                        final file = File('${dir.path}/$name');
-                        await file.writeAsBytes(response.bodyBytes);
-                        await Gal.putImage(file.path, album: 'Ganesha');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Gambar disimpan ke galeri'),
-                              backgroundColor: Color(0xFF22C55E),
-                            ),
-                          );
-                        }
-                      }
-                    } catch (_) {
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    final response = await http.get(Uri.parse(url));
+                    if (response.statusCode == 200) {
+                      final dir = await getTemporaryDirectory();
+                      final name = url.split('/').last;
+                      final file = File('${dir.path}/$name');
+                      await file.writeAsBytes(response.bodyBytes);
+                      await Gal.putImage(file.path, album: 'Ganesha');
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Gagal menyimpan gambar'),
-                            backgroundColor: Colors.red,
+                            content: Text('Gambar disimpan ke galeri'),
+                            backgroundColor: Color(0xFF22C55E),
                           ),
                         );
                       }
                     }
-                  },
-                  icon: const Icon(Icons.download, size: 18),
-                  label: const Text('Download'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF22C55E),
-                    foregroundColor: Colors.white,
-                  ),
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Gagal menyimpan gambar'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('Download'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF22C55E),
+                  foregroundColor: Colors.white,
                 ),
-              ],
+              ),
             ],
           ),
         ),

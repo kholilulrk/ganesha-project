@@ -307,7 +307,7 @@ func UploadChecklistImage(c *gin.Context) {
 		if role == "logistic" {
 			limit = "1"
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Maksimal %s file", limit)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Maksimal %s gambar", limit)})
 		return
 	}
 
@@ -318,7 +318,7 @@ func UploadChecklistImage(c *gin.Context) {
 	}
 
 	ext := filepath.Ext(file.Filename)
-	allowed := []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", ".mov", ".avi", ".mkv", ".webm"}
+	allowed := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
 	validExt := false
 	for _, e := range allowed {
 		if strings.EqualFold(ext, e) {
@@ -327,7 +327,7 @@ func UploadChecklistImage(c *gin.Context) {
 		}
 	}
 	if !validExt {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Hanya file gambar (jpg, png, gif, webp) atau video (mp4, mov, avi, mkv, webm)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Hanya file gambar (jpg, png, gif, webp)"})
 		return
 	}
 
@@ -360,17 +360,7 @@ func UploadChecklistImage(c *gin.Context) {
 	}
 	out.Close()
 
-	videoExts := []string{".mp4", ".mov", ".avi", ".mkv", ".webm"}
-	isVideo := false
-	for _, ve := range videoExts {
-		if strings.EqualFold(ext, ve) {
-			isVideo = true
-			break
-		}
-	}
-	if !isVideo {
-		compressImage(dst)
-	}
+	compressImage(dst)
 
 	existing = append(existing, filename)
 	item.Images = strings.Join(existing, ",")
