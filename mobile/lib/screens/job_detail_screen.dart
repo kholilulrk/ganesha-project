@@ -200,7 +200,11 @@ class _JobDetailScreenState extends State<JobDetailScreen>
       final bytes = await file.readAsBytes();
       final image = img.decodeImage(bytes);
       if (image == null) return file;
-      final resized = img.copyResize(image, width: 1920, height: 1080);
+      img.Image oriented = img.bakeOrientation(image);
+      if (oriented.width > oriented.height) {
+        oriented = img.copyRotate(oriented, angle: -90);
+      }
+      final resized = img.copyResize(oriented, width: 1920, height: 1080);
       final compressed = img.encodeJpg(resized, quality: 50);
       final dir = (await getTemporaryDirectory()).path;
       final name = DateTime.now().millisecondsSinceEpoch.toString();
