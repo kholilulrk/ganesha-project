@@ -149,24 +149,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
                       ...activeAnnouncements.take(3).map((a) => FadeSlideIn(
                         index: activeAnnouncements.indexOf(a),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(a.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        child: InkWell(
+                          onTap: () => _showAnnouncementDetail(a),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(a.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                if (a.content != null && a.content!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(a.content!, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 2, overflow: TextOverflow.ellipsis),
                                   ),
-                                ],
-                              ),
-                              if (a.content != null && a.content!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(a.content!, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 3, overflow: TextOverflow.ellipsis),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       )),
@@ -490,6 +488,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAnnouncementDetail(Announcement a) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.campaign_rounded, color: Color(0xFF4F46E5), size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(a.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              if (a.content != null && a.content!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Text(a.content!, style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
