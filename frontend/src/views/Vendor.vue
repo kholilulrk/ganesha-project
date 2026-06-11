@@ -99,6 +99,16 @@
                   </td>
                 </tr>
               </tbody>
+              <tfoot v-if="paymentTerms.length">
+                <tr class="total-row">
+                  <td class="text-center"><strong>Total</strong></td>
+                  <td><strong>{{ totalPercentage }}%</strong></td>
+                  <td><strong>{{ formatRupiah(totalAmount) }}</strong></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
             <div v-else class="empty-state">
               <p>Belum ada termin pembayaran</p>
@@ -188,7 +198,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { vendorAPI } from '../api/vendor'
 import { jobAPI } from '../api/job'
@@ -214,6 +224,15 @@ const paymentTerms = ref([])
 const editingTerm = ref(false)
 const editTermId = ref(null)
 const termLoading = ref(false)
+
+const totalAmount = computed(() => {
+  return paymentTerms.value.reduce((sum, t) => sum + (t.amount || 0), 0)
+})
+
+const totalPercentage = computed(() => {
+  const total = paymentTerms.value.reduce((sum, t) => sum + (t.percentage || 0), 0)
+  return total
+})
 
 const toast = reactive({ visible: false, message: '' })
 let toastTimer = null
@@ -731,6 +750,12 @@ onMounted(() => {
 }
 
 .vendor-table .td-name {
+  font-weight: 600;
+}
+
+.vendor-table .total-row td {
+  border-top: 2px solid var(--card-border-light);
+  background: var(--hover-bg);
   font-weight: 600;
 }
 
