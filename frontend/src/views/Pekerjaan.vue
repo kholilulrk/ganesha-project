@@ -395,7 +395,7 @@ async function shareJob(job) {
       token = res.data.share_token
       job.share_token = token
     }
-    const url = window.location.origin + '/pekerjaan/shared/' + token
+    const url = window.location.origin + '/api/s/' + token
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(url)
     } else {

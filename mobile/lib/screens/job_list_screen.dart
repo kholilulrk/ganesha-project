@@ -275,7 +275,7 @@ class JobListScreenState extends State<JobListScreen> {
         final res = await JobService.generateShareLink(job.id);
         token = res['share_token'] as String? ?? '';
       }
-      final url = '${ApiService.baseUrl.replaceAll('/api', '')}/pekerjaan/shared/$token';
+      final url = '${ApiService.baseUrl.replaceAll('/api', '')}/api/s/$token';
       await Clipboard.setData(ClipboardData(text: url));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link tersalin')));
     } catch (e) {

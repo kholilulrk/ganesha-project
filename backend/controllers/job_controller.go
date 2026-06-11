@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"website-backend/config"
 	"website-backend/middleware"
 	"website-backend/models"
 	"website-backend/services"
@@ -418,6 +421,47 @@ func splitCSV(s string) []string {
 		}
 	}
 	return result
+}
+
+func SharedJobPreview(c *gin.Context) {
+	token := c.Param("token")
+	var job models.Job
+	if err := models.DB.Unscoped().Where("share_token = ?", token).First(&job).Error; err != nil {
+		c.Data(http.StatusNotFound, "text/html; charset=utf-8", []byte("<html><head><title>Link Tidak Valid</title></head><body><h2>Link tidak valid atau sudah tidak berlaku</h2></body></html>"))
+		return
+	}
+
+	appURL := config.AppConfig.AppURL
+	title := html.EscapeString(job.Name)
+	description := html.EscapeString(job.Description)
+	if description == "" {
+		description = "Lihat detail pekerjaan"
+	}
+	if len(description) > 200 {
+		description = description[:200]
+	}
+	frontendURL := fmt.Sprintf("%s/pekerjaan/shared/%s", appURL, token)
+
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>%s - Ganesha Project</title>
+<meta property="og:title" content="%s">
+<meta property="og:description" content="%s">
+<meta property="og:url" content="%s">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ganesha Project">
+<meta name="twitter:card" content="summary">
+<meta http-equiv="refresh" content="0;url=%s">
+<link rel="canonical" href="%s">
+</head>
+<body>
+<script>window.location.replace("%s");</script>
+</body>
+</html>`, title, title, description, frontendURL, frontendURL, frontendURL, frontendURL)
+
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
 
 func joinCSV(parts []string) string {

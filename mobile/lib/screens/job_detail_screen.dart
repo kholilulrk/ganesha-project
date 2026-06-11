@@ -792,7 +792,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         token = result['share_token'] as String? ?? '';
       }
       if (token.isNotEmpty) {
-        final url = '${ApiService.baseUrl.replaceAll('/api', '')}/pekerjaan/shared/$token';
+        final url = '${ApiService.baseUrl.replaceAll('/api', '')}/api/s/$token';
         await Clipboard.setData(ClipboardData(text: url));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

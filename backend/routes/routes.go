@@ -11,6 +11,7 @@ func SetupRouter(r *gin.Engine) {
 	r.Static("/uploads", "./uploads")
 	api := r.Group("/api")
 	{
+		api.GET("/s/:token", controllers.SharedJobPreview)
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", controllers.Register)
