@@ -856,7 +856,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 ),
               ),
         ),
-        if (canManage)
+        if (canManage && _editingItemId == null)
           Container(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Row(
@@ -942,7 +942,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 ),
               ),
         ),
-        if (canManage)
+        if (canManage && _editingItemId == null)
           Container(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Column(
