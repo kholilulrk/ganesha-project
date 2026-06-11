@@ -786,8 +786,11 @@ class _JobDetailScreenState extends State<JobDetailScreen>
 
   Future<void> _shareLink() async {
     try {
-      final result = await JobService.generateShareLink(widget.job.id);
-      final token = result['share_token'] as String? ?? '';
+      String token = widget.job.shareToken ?? '';
+      if (token.isEmpty) {
+        final result = await JobService.generateShareLink(widget.job.id);
+        token = result['share_token'] as String? ?? '';
+      }
       if (token.isNotEmpty) {
         final url = '${ApiService.baseUrl.replaceAll('/api', '')}/pekerjaan/shared/$token';
         await Clipboard.setData(ClipboardData(text: url));

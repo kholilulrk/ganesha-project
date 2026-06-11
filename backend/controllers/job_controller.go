@@ -295,6 +295,10 @@ func GenerateShareLink(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
 		return
 	}
+	if job.ShareToken != "" {
+		c.JSON(http.StatusOK, gin.H{"share_token": job.ShareToken})
+		return
+	}
 	token := job.GenerateShareToken()
 	if err := models.DB.Save(&job).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -306,7 +310,7 @@ func GenerateShareLink(c *gin.Context) {
 func ShowSharedJob(c *gin.Context) {
 	token := c.Param("token")
 	var job models.Job
-	if err := models.DB.Where("share_token = ?", token).First(&job).Error; err != nil {
+	if err := models.DB.Unscoped().Where("share_token = ?", token).First(&job).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Link tidak valid atau sudah tidak berlaku"})
 		return
 	}
