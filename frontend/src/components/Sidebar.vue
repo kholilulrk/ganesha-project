@@ -69,6 +69,10 @@
           <span v-if="!collapsed">Upload Dokumen</span>
         </router-link>
       </template>
+      <router-link v-if="!isLimitedRole" to="/vendor" class="nav-item" active-class="active">
+        <span class="nav-icon">&#127970;</span>
+        <span v-if="!collapsed">Vendor</span>
+      </router-link>
       <div v-if="!isLimitedRole" class="nav-item nav-parent" :class="{ active: monitoringOpen }" @click="monitoringOpen = !monitoringOpen">
         <span class="nav-icon">&#128200;</span>
         <span v-if="!collapsed">Monitoring</span>
