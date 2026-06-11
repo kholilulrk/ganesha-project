@@ -487,20 +487,20 @@ async function saveEdit(roleKey, itemId) {
 async function uploadImage(roleKey, itemId, e) {
   const files = Array.from(e.target.files || [])
   if (!files.length) return
-  const maxImages = roleKey === 'teknisi' ? 4 : 1
+  const maxImages = roleKey === 'teknisi' ? 3 : 1
   const item = roleKey === 'teknisi'
     ? teknisiItems.value.find(i => i.ID === itemId)
     : logisticItems.value.find(i => i.ID === itemId)
   const existing = item ? getImages(item).length : 0
   const allowed = maxImages - existing
   if (allowed <= 0) {
-    tabError.value = roleKey === 'teknisi' ? 'Maksimal 4 file untuk tugas Teknisi' : 'Maksimal 1 file untuk tugas Logistic'
+    tabError.value = roleKey === 'teknisi' ? 'Maksimal 3 gambar untuk tugas Teknisi' : 'Maksimal 1 file untuk tugas Logistic'
     e.target.value = ''
     return
   }
   const toUpload = files.slice(0, allowed)
   if (files.length > allowed) {
-    tabError.value = `${roleKey === 'teknisi' ? 'Maksimal 4' : 'Maksimal 1'} file. ${allowed} file akan diupload.`
+    tabError.value = `${roleKey === 'teknisi' ? 'Maksimal 3' : 'Maksimal 1'} file. ${allowed} file akan diupload.`
   }
   const roleName = roleKey === 'teknisi' ? 'teknisi' : 'logistic'
   try {

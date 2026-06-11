@@ -297,13 +297,13 @@ func UploadChecklistImage(c *gin.Context) {
 		existing = []string{}
 	}
 
-	maxImages := 4
+	maxImages := 3
 	if role == "logistic" {
 		maxImages = 1
 	}
 
 	if len(existing) >= maxImages {
-		limit := "4"
+		limit := "3"
 		if role == "logistic" {
 			limit = "1"
 		}
