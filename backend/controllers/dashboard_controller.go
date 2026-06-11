@@ -98,10 +98,21 @@ func GetDashboardStats(c *gin.Context) {
 	}
 	completedQuery.Count(&completedJobs)
 
+	var progresJobs int64
+	progresQuery := models.DB.Model(&models.Job{}).Where("status = ?", "progres")
+	if !isAdmin {
+		progresQuery = progresQuery.Where(
+			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",
+			roleStr, strconv.FormatUint(uint64(currentUserID), 10),
+		)
+	}
+	progresQuery.Count(&progresJobs)
+
 	c.JSON(http.StatusOK, gin.H{
 		"pending_jobs":         pendingJobs,
 		"total_jobs":           totalJobs,
 		"completed_jobs":       completedJobs,
+		"progres_jobs":         progresJobs,
 		"uncompleted_teknisi":  uncompletedTeknisi,
 		"uncompleted_logistic": uncompletedLogistic,
 		"uncompleted_jobs":     uncompletedJobs,

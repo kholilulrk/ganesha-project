@@ -11,13 +11,12 @@ import '../models/surat.dart';
 import '../models/user.dart';
 import '../models/document.dart';
 import '../services/job_service.dart';
-import 'job_list_screen.dart';
 import 'job_detail_screen.dart';
 import '../widgets/animated_entry.dart';
-import '../widgets/profile_bar.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final void Function(String? filter)? onNavigateToPekerjaan;
+  const HomeScreen({super.key, this.onNavigateToPekerjaan});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -104,42 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_stats != null) ...[
               _StatGrid(
                 stats: _stats!,
-                onPendingTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => Scaffold(
-                      body: Column(children: [
-                        const ProfileBar(),
-                        Expanded(child: JobListScreen(filter: 'pending')),
-                      ]),
-                    )),
-                  );
-                  _loadStats();
-                },
-                onProgressTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => Scaffold(
-                      body: Column(children: [
-                        const ProfileBar(),
-                        Expanded(child: JobListScreen(filter: 'incomplete')),
-                      ]),
-                    )),
-                  );
-                  _loadStats();
-                },
-                onCompletedTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => Scaffold(
-                      body: Column(children: [
-                        const ProfileBar(),
-                        Expanded(child: JobListScreen(filter: 'done')),
-                      ]),
-                    )),
-                  );
-                  _loadStats();
-                },
+                onTotalTap: () => widget.onNavigateToPekerjaan?.call(null),
+                onPendingTap: () => widget.onNavigateToPekerjaan?.call('pending'),
+                onProgressTap: () => widget.onNavigateToPekerjaan?.call('progres'),
+                onCompletedTap: () => widget.onNavigateToPekerjaan?.call('done'),
               ),
               const SizedBox(height: 12),
             ],
@@ -467,17 +434,18 @@ class _HomeScreenState extends State<HomeScreen> {
 // Stat Grid
 class _StatGrid extends StatelessWidget {
   final Map<String, dynamic> stats;
+  final VoidCallback? onTotalTap;
   final VoidCallback? onPendingTap;
   final VoidCallback? onProgressTap;
   final VoidCallback? onCompletedTap;
-  const _StatGrid({required this.stats, this.onPendingTap, this.onProgressTap, this.onCompletedTap});
+  const _StatGrid({required this.stats, this.onTotalTap, this.onPendingTap, this.onProgressTap, this.onCompletedTap});
 
   @override
   Widget build(BuildContext context) {
     final items = [
-      _StatItem(icon: Icons.work_history_rounded, label: 'Total Pekerjaan', value: '${stats['total_jobs'] ?? 0}', colors: const [Color(0xFF4F46E5), Color(0xFF7C3AED)]),
+      _StatItem(icon: Icons.work_history_rounded, label: 'Total Pekerjaan', value: '${stats['total_jobs'] ?? 0}', colors: const [Color(0xFF4F46E5), Color(0xFF7C3AED)], onTap: onTotalTap),
       _StatItem(icon: Icons.pending_actions_rounded, label: 'Pending', value: '${stats['pending_jobs'] ?? 0}', colors: const [Color(0xFFF59E0B), Color(0xFFEF4444)], onTap: onPendingTap),
-      _StatItem(icon: Icons.trending_up_rounded, label: 'Progress', value: '${stats['uncompleted_jobs'] ?? 0}', colors: const [Color(0xFF06B6D4), Color(0xFF3B82F6)], onTap: onProgressTap),
+      _StatItem(icon: Icons.trending_up_rounded, label: 'Progress', value: '${stats['progres_jobs'] ?? 0}', colors: const [Color(0xFF06B6D4), Color(0xFF3B82F6)], onTap: onProgressTap),
       _StatItem(icon: Icons.check_circle_rounded, label: 'Selesai', value: '${stats['completed_jobs'] ?? 0}', colors: const [Color(0xFF10B981), Color(0xFF059669)], onTap: onCompletedTap),
     ];
 

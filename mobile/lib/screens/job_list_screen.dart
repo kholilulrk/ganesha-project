@@ -18,10 +18,10 @@ class JobListScreen extends StatefulWidget {
   final String? filter;
   const JobListScreen({super.key, this.filter});
   @override
-  State<JobListScreen> createState() => _JobListScreenState();
+  State<JobListScreen> createState() => JobListScreenState();
 }
 
-class _JobListScreenState extends State<JobListScreen> {
+class JobListScreenState extends State<JobListScreen> {
   List<Job> _jobs = [];
   List<Job> _filtered = [];
   bool _loading = true;
@@ -33,17 +33,26 @@ class _JobListScreenState extends State<JobListScreen> {
   @override
   void initState() {
     super.initState();
-    final f = widget.filter;
-    if (f == 'pending') _filterStatus = 'pending';
-    else if (f == 'progres') _filterStatus = 'progres';
-    else if (f == 'done') _filterStatus = 'done';
+    _applyFilterFromWidget();
     _loadJobs();
     _timer = Timer.periodic(const Duration(seconds: 30), (_) => _loadJobs());
   }
 
-  bool _passesFilter(Job j) {
-    if (widget.filter == 'incomplete') return j.status != 'selesai' && j.status != 'done' && j.status != 'Selesai';
-    return true;
+  void applyFilter(String? filter) {
+    if (filter == null) {
+      _filterStatus = '';
+      _filterShare = '';
+    } else {
+      _filterStatus = filter;
+    }
+    _applyLocalFilter();
+  }
+
+  void _applyFilterFromWidget() {
+    final f = widget.filter;
+    if (f == 'pending') _filterStatus = 'pending';
+    else if (f == 'progres') _filterStatus = 'progres';
+    else if (f == 'done') _filterStatus = 'done';
   }
 
   @override
@@ -59,7 +68,7 @@ class _JobListScreenState extends State<JobListScreen> {
       if (mounted) {
         setState(() {
           _jobs = jobs;
-          _applyFilters();
+          _applyLocalFilter();
           _loading = false;
         });
       }
@@ -68,11 +77,10 @@ class _JobListScreenState extends State<JobListScreen> {
     }
   }
 
-  void _applyFilters() {
+  void _applyLocalFilter() {
     String q = _searchC.text.toLowerCase().trim();
     setState(() {
       _filtered = _jobs.where((j) {
-        if (!_passesFilter(j)) return false;
         if (q.isNotEmpty && !j.name.toLowerCase().contains(q) && !(j.description ?? '').toLowerCase().contains(q)) return false;
         if (_filterStatus.isNotEmpty) {
           if (_filterStatus == 'done') {
@@ -92,7 +100,7 @@ class _JobListScreenState extends State<JobListScreen> {
 
   void _filter(String q) {
     _searchC.text = q;
-    _applyFilters();
+    _applyLocalFilter();
   }
 
   Future<void> _showJobForm({Job? editJob}) async {
@@ -387,7 +395,7 @@ class _JobListScreenState extends State<JobListScreen> {
                               isExpanded: true,
                               decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), hintText: 'Semua Status'),
                               items: ['pending', 'progres', 'done'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                              onChanged: (v) => setState(() { _filterStatus = v ?? ''; _applyFilters(); }),
+                              onChanged: (v) => setState(() { _filterStatus = v ?? ''; _applyLocalFilter(); }),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -397,7 +405,7 @@ class _JobListScreenState extends State<JobListScreen> {
                               isExpanded: true,
                               decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), hintText: 'Semua Role'),
                               items: ['Teknisi', 'Logistic', 'Administrasi'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                              onChanged: (v) => setState(() { _filterShare = v ?? ''; _applyFilters(); }),
+                              onChanged: (v) => setState(() { _filterShare = v ?? ''; _applyLocalFilter(); }),
                             ),
                           ),
                         ],

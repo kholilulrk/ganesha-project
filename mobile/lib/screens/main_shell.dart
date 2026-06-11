@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -23,6 +24,7 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _uncompletedTeknisi = 0;
   int _uncompletedLogistic = 0;
+  final _jobListKey = GlobalKey<JobListScreenState>();
 
   @override
   void initState() {
@@ -40,6 +42,15 @@ class _MainShellState extends State<MainShell> {
         });
       }
     } catch (_) {}
+  }
+
+  void _goToPekerjaan(String? filter, int pekerjaanIndex) {
+    setState(() {
+      _currentIndex = pekerjaanIndex;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jobListKey.currentState?.applyFilter(filter);
+    });
   }
 
   bool get _showBadge {
@@ -62,51 +73,43 @@ class _MainShellState extends State<MainShell> {
     final icons = <IconData>[];
     int? pekerjaanIndex;
 
-    // Dashboard - always
-    screenList.add(const HomeScreen());
+    screenList.add(HomeScreen(onNavigateToPekerjaan: (filter) {
+      if (pekerjaanIndex != null) _goToPekerjaan(filter, pekerjaanIndex);
+    }));
     titles.add('Dashboard');
     icons.add(Icons.dashboard_rounded);
 
-    // Data Pekerjaan - only if can view
     if (perm.can('pekerjaan', 'view', isSuperAdmin: isSuperAdmin)) {
       pekerjaanIndex = screenList.length;
-      screenList.add(const JobListScreen());
+      screenList.add(JobListScreen(key: _jobListKey));
       titles.add('Pekerjaan');
       icons.add(Icons.work_history_rounded);
     }
 
-    // To-do List - for all roles
     screenList.add(const TodoScreen());
     titles.add('To-do');
     icons.add(Icons.checklist_rounded);
 
-    // Dokumen - for all roles
     screenList.add(const DocumentManagementScreen());
     titles.add('Dokumen');
     icons.add(Icons.folder_rounded);
 
     if (!isTeknisiOrLogistic) {
-
-      // Kelengkapan Dokumen
       screenList.add(const KelengkapanDokumenScreen());
       titles.add('Kel. Dokumen');
       icons.add(Icons.assignment_rounded);
 
-      // Monitoring Surat
       screenList.add(const MonitoringSuratScreen());
       titles.add('Surat');
       icons.add(Icons.description_rounded);
-
     }
 
-    // Pengguna - Super Admin only
     if (isSuperAdmin) {
       screenList.add(const UserManagementScreen());
       titles.add('Pengguna');
       icons.add(Icons.people_alt_rounded);
     }
 
-    // Akses - Super Admin only
     if (isSuperAdmin) {
       screenList.add(const PermissionsScreen());
       titles.add('Akses');
@@ -117,14 +120,12 @@ class _MainShellState extends State<MainShell> {
       body: Column(
         children: [
           const ProfileBar(),
-          // Main content
           Expanded(
             child: IndexedStack(
               index: _currentIndex < screenList.length ? _currentIndex : 0,
               children: screenList,
             ),
           ),
-          // Bottom nav
           Container(
             decoration: BoxDecoration(
               color: Colors.white,

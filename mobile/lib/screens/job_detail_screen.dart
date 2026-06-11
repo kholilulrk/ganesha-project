@@ -351,11 +351,11 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     final item = role == 'teknisi'
         ? _teknisi.firstWhere((i) => i.id == itemId)
         : _logistic.firstWhere((i) => i.id == itemId);
-    final maxImages = role == 'teknisi' ? 2 : 1;
+    final maxImages = role == 'teknisi' ? 3 : 1;
     final existing = item.imageList.length;
     final allowed = maxImages - existing;
     if (allowed <= 0) {
-      _showError(role == 'teknisi' ? 'Maksimal 2 gambar' : 'Maksimal 1 gambar');
+      _showError(role == 'teknisi' ? 'Maksimal 3 gambar' : 'Maksimal 1 gambar');
       return;
     }
     final toUpload = picked.take(allowed).toList();
