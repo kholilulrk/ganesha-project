@@ -26,7 +26,7 @@ class JobDetailScreen extends StatefulWidget {
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabC;
   List<ChecklistItem> _teknisi = [];
   List<ChecklistItem> _logistic = [];
@@ -38,6 +38,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   bool _hasTeknisi = true;
   bool _hasLogistic = true;
   Timer? _timer;
+  bool _isLoadingAll = false;
 
   final _tekSearch = TextEditingController();
   final _logSearch = TextEditingController();
@@ -64,6 +65,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final user = context.read<AuthProvider>().user;
     final role = user?.role ?? '';
     final shared = widget.job.sharedRoles;
@@ -76,7 +78,20 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _timer?.cancel();
+      _timer = null;
+    } else if (state == AppLifecycleState.resumed) {
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(seconds: 30), (_) => _loadAll());
+      _loadAll();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabC.dispose();
     _tekSearch.dispose();
     _logSearch.dispose();
@@ -98,6 +113,8 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   Future<void> _loadAll() async {
+    if (_isLoadingAll) return;
+    _isLoadingAll = true;
     setState(() => _loading = true);
     try {
       if (_hasTeknisi) {
@@ -111,10 +128,14 @@ class _JobDetailScreenState extends State<JobDetailScreen>
       final commentsData = await JobService.getComments(widget.job.id);
       _comments = commentsData;
       if (mounted) {
-        setState(() => _loading = false);
+        setState(() { _loading = false; _error = null; });
       }
+    } on TimeoutException {
+      if (mounted) setState(() { _error = 'Koneksi terputus. Periksa internet Anda.'; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    } finally {
+      _isLoadingAll = false;
     }
   }
 
@@ -508,7 +529,26 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
-            Center(child: Text('Error: $_error'))
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(_error!, textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 15, color: Colors.grey)),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _loadAll,
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: const Text('Coba Lagi'),
+                    ),
+                  ],
+                ),
+              ),
+            )
           else
             Column(
               children: [
