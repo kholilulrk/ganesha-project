@@ -55,8 +55,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openDownloadUrl() async {
     if (_updateInfo == null || !_updateInfo!.hasDownloadUrl) return;
     final uri = Uri.tryParse(_updateInfo!.downloadUrl);
-    if (uri != null && await canLaunchUrl(uri)) {
+    if (uri == null) return;
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka link download: $e')),
+        );
+      }
     }
   }
 
