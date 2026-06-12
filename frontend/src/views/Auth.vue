@@ -3,7 +3,7 @@
     <div class="auth-container">
       <div class="auth-card">
         <div class="brand">
-          <div class="logo">G</div>
+          <div class="logo">⚡</div>
           <h1>Ganesha</h1>
           <p>Management System</p>
         </div>
@@ -228,7 +228,7 @@ async function handleRegister() {
   width: 64px;
   height: 64px;
   margin: 0 auto 16px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
   border-radius: 18px;
   display: flex;
   align-items: center;

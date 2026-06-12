@@ -1,7 +1,7 @@
 <template>
   <div class="home-wrapper">
     <div class="home-content">
-      <div class="logo-big">G</div>
+      <div class="logo-big">⚡</div>
       <h1>Ganesha Management System</h1>
       <p>Sistem manajemen untuk Administrasi, Teknisi, dan Logistic</p>
       <div class="actions">
@@ -51,7 +51,7 @@ useHead({
   width: 96px;
   height: 96px;
   margin: 0 auto 24px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
   border-radius: 24px;
   display: flex;
   align-items: center;

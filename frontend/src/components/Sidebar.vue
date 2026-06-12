@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar" :class="{ collapsed }">
     <div class="sidebar-header">
-      <div class="logo-small">G</div>
+      <div class="logo-small">⚡</div>
       <span v-if="!collapsed" class="brand-name">Ganesha</span>
       <button class="toggle-btn" @click="$emit('toggle')">
         <span class="arrow" :class="{ rotated: collapsed }">◀</span>
@@ -251,7 +251,7 @@ function handleLogout() {
   width: 36px;
   height: 36px;
   min-width: 36px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
   border-radius: 10px;
   display: flex;
   align-items: center;
