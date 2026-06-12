@@ -354,6 +354,22 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   Future<void> _deleteImage(String role, int itemId, String filename) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hapus Gambar'),
+        content: const Text('Yakin ingin menghapus gambar ini?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
     try {
       await ChecklistService.deleteImage(widget.job.id, itemId, filename);
       await _loadAll();
@@ -399,6 +415,23 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   Future<void> _deleteItem(String role, int id) async {
+    final label = role == 'teknisi' ? 'tugas teknisi' : 'tugas logistic';
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Hapus $label'),
+        content: Text('Yakin ingin menghapus $label ini?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
     try {
       await ChecklistService.deleteItem(widget.job.id, id);
       await _loadAll();
