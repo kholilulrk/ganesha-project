@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar" :class="{ collapsed }">
     <div class="sidebar-header">
-      <div class="logo-small">⚡</div>
+      <div class="logo-small"><img class="logo-img" src="/logo.png" alt="Ganesha" /></div>
       <span v-if="!collapsed" class="brand-name">Ganesha</span>
       <button class="toggle-btn" @click="$emit('toggle')">
         <span class="arrow" :class="{ rotated: collapsed }">◀</span>
@@ -256,9 +256,13 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
+  overflow: hidden;
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .brand-name {
   color: var(--text-primary);

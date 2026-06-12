@@ -3,7 +3,7 @@
     <div class="auth-container">
       <div class="auth-card">
         <div class="brand">
-          <div class="logo">⚡</div>
+          <div class="logo"><img class="logo-img" src="/logo.png" alt="Ganesha" /></div>
           <h1>Ganesha</h1>
           <p>Management System</p>
         </div>
@@ -233,10 +233,14 @@ async function handleRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
+  overflow: hidden;
   animation: float 3s ease-in-out infinite;
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 @keyframes float {

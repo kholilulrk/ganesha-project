@@ -1,7 +1,7 @@
 <template>
   <div class="home-wrapper">
     <div class="home-content">
-      <div class="logo-big">⚡</div>
+      <div class="logo-big"><img class="logo-img" src="/logo.png" alt="Ganesha" /></div>
       <h1>Ganesha Management System</h1>
       <p>Sistem manajemen untuk Administrasi, Teknisi, dan Logistic</p>
       <div class="actions">
@@ -56,9 +56,14 @@ useHead({
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 42px;
-  font-weight: 700;
+  overflow: hidden;
   animation: float 3s ease-in-out infinite;
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 @keyframes float {
