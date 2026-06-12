@@ -202,7 +202,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final auth = context.watch<AuthProvider>();
     final perm = context.watch<PermissionProvider>();
     final isSuperAdmin = auth.user?.role == 'Super Admin';
-    final canManageUsers = perm.can('users', 'view', isSuperAdmin: isSuperAdmin);
+    final canView = perm.can('users', 'view', isSuperAdmin: isSuperAdmin);
+    final canCreate = perm.can('users', 'create', isSuperAdmin: isSuperAdmin);
+    final canEdit = perm.can('users', 'edit', isSuperAdmin: isSuperAdmin);
+    final canDelete = perm.can('users', 'delete', isSuperAdmin: isSuperAdmin);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -225,7 +228,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Pengguna', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      if (canManageUsers)
+                      if (canCreate)
                         IconButton(
                           icon: const Icon(Icons.person_add_rounded),
                           onPressed: () => _showForm(),
@@ -314,24 +317,26 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                           ],
                                         ),
                                       ),
-                                      if (canManageUsers)
+                                      if (canEdit || canDelete)
                                         Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit_outlined, size: 20),
-                                              onPressed: () => _showForm(editId: u.id),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              splashRadius: 18,
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.delete_outline, size: 20, color: Colors.red.shade400),
-                                              onPressed: () => _deleteUser(u.id),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              splashRadius: 18,
-                                            ),
+                                            if (canEdit)
+                                              IconButton(
+                                                icon: const Icon(Icons.edit_outlined, size: 20),
+                                                onPressed: () => _showForm(editId: u.id),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                splashRadius: 18,
+                                              ),
+                                            if (canDelete)
+                                              IconButton(
+                                                icon: Icon(Icons.delete_outline, size: 20, color: Colors.red.shade400),
+                                                onPressed: () => _deleteUser(u.id),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                splashRadius: 18,
+                                              ),
                                           ],
                                         ),
                                       ],
