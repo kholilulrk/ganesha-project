@@ -340,7 +340,7 @@ class _VendorScreenState extends State<VendorScreen> {
                                 setDialogState(() => termsError = '$e');
                               }
                             },
-                            child: const Text(editingTerm ? 'Simpan' : 'Tambah'),
+                            child: Text(editingTerm ? 'Simpan' : 'Tambah'),
                           ),
                         ],
                       ),
