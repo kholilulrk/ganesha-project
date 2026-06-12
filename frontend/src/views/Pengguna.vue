@@ -26,7 +26,13 @@
         <tbody>
           <tr v-for="u in users" :key="u.ID" class="table-row">
             <td class="td-id">{{ u.ID }}</td>
-            <td class="td-name">{{ u.name }}</td>
+            <td class="td-name">
+              <div class="user-cell">
+                <img v-if="u.photo" class="user-avatar" :src="u.photo" />
+                <div v-else class="user-avatar">{{ u.name?.charAt(0) || '?' }}</div>
+                <span>{{ u.name }}</span>
+              </div>
+            </td>
             <td>{{ u.username }}</td>
             <td>
               <span class="role-badge" :class="u.role">{{ u.role }}</span>
@@ -334,6 +340,27 @@ onMounted(() => {
   border-bottom: 1px solid var(--card-border-light);
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .td-name {

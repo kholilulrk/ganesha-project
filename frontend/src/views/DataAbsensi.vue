@@ -53,7 +53,8 @@
             <td>{{ i + 1 }}</td>
             <td>
               <div class="user-cell">
-                <div class="user-avatar">{{ r.user?.name?.charAt(0) || '?' }}</div>
+                <img v-if="r.user?.photo" class="user-avatar-img" :src="r.user.photo" />
+                <div v-else class="user-avatar">{{ r.user?.name?.charAt(0) || '?' }}</div>
                 <span>{{ r.user?.name || '-' }}</span>
               </div>
             </td>
@@ -417,10 +418,16 @@ async function handleDelete(r) {
   gap: 8px;
 }
 
-.user-avatar {
+.user-avatar,
+.user-avatar-img {
   width: 28px;
   height: 28px;
   border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.user-avatar {
   background: linear-gradient(135deg, #667eea, #764ba2);
   display: flex;
   align-items: center;
@@ -428,7 +435,6 @@ async function handleDelete(r) {
   font-size: 12px;
   font-weight: 600;
   color: #fff;
-  flex-shrink: 0;
 }
 
 .role-badge {
