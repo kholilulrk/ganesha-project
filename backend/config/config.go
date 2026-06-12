@@ -15,6 +15,8 @@ type Config struct {
 	ServerPort             string
 	AppURL                 string
 	FCMServiceAccountPath string
+	AppLatestVersion      string
+	AppDownloadURL        string
 }
 
 var AppConfig *Config
@@ -30,8 +32,10 @@ func LoadConfig() {
 		DBName:     getEnv("DB_NAME", "website"),
 		JWTSecret:  getEnv("JWT_SECRET", "secret-key-change-in-production"),
 		ServerPort: getEnv("SERVER_PORT", "8080"),
-		AppURL:     getEnv("APP_URL", "http://localhost:5173"),
+		AppURL:                getEnv("APP_URL", "http://localhost:5173"),
 		FCMServiceAccountPath: getEnv("FCM_SERVICE_ACCOUNT_PATH", ""),
+		AppLatestVersion:      getEnv("APP_LATEST_VERSION", "1.0.0"),
+		AppDownloadURL:        getEnv("APP_DOWNLOAD_URL", ""),
 	}
 }
 

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
+import '../services/app_update_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,9 +16,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  AppUpdateInfo? _updateInfo;
+  String _currentVersion = '';
+  bool _checkingUpdate = true;
+
   @override
   void initState() {
     super.initState();
+    _loadVersion();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final user = context.read<AuthProvider>().user;
@@ -24,6 +32,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       }
     });
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      _currentVersion = info.version;
+    } catch (_) {}
+    try {
+      _updateInfo = await AppUpdateService.checkUpdate();
+    } catch (_) {}
+    if (mounted) setState(() => _checkingUpdate = false);
+  }
+
+  bool get _hasUpdate {
+    if (_updateInfo == null) return false;
+    if (!_updateInfo!.hasDownloadUrl) return false;
+    final latest = _updateInfo!.latestVersion;
+    return latest.compareTo(_currentVersion) > 0;
+  }
+
+  Future<void> _openDownloadUrl() async {
+    if (_updateInfo == null || !_updateInfo!.hasDownloadUrl) return;
+    final uri = Uri.tryParse(_updateInfo!.downloadUrl);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   void _showEnrollmentDialog() {
@@ -107,6 +141,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (_) => theme.toggle(),
               ),
               onTap: () => theme.toggle(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('Aplikasi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(color: const Color(0xFF4F46E5).withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.info_outline, color: Color(0xFF4F46E5), size: 20),
+                      ),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Versi Aplikasi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 2),
+                          Text(_checkingUpdate ? 'Memeriksa...' : _currentVersion, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                        ],
+                      ),
+                      const Spacer(),
+                      if (!_checkingUpdate && _updateInfo != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _hasUpdate ? const Color(0xFF22C55E).withOpacity(0.1) : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _hasUpdate ? 'Update Tersedia' : 'Terbaru',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                              color: _hasUpdate ? const Color(0xFF22C55E) : Colors.grey.shade600),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_hasUpdate) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.download_rounded, size: 20),
+                        label: const Text('Perbarui Aplikasi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4F46E5),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: _openDownloadUrl,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],

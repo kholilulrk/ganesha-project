@@ -141,5 +141,6 @@ func SetupRouter(r *gin.Engine) {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+	r.GET("/api/app-version", controllers.GetAppVersion)
 	r.GET("/sitemap.xml", controllers.GetSitemap)
 }
