@@ -4,7 +4,18 @@
 
 Setiap ada perubahan di mobile (Flutter), lakukan langkah berikut agar user bisa update langsung dari HP.
 
-### 1. Build APK di lokal (Windows)
+### 1. Naikkan versi di pubspec.yaml
+
+Buka `mobile/pubspec.yaml`, ubah `version:`:
+
+```yaml
+version: 1.0.0+1    # → ganti jadi 1.1.0+1 (atau sesuai kebutuhan)
+```
+
+> Angka sebelum `+` adalah versi yang ditampilkan ke user.
+> Angka setelah `+` (build number) naikkan 1 setiap build.
+
+### 2. Build APK di lokal (Windows)
 
 ```powershell
 cd mobile
@@ -13,27 +24,28 @@ flutter build apk --release
 
 Hasil: `mobile/build/app/outputs/flutter-apk/app-release.apk`
 
-### 2. Upload APK ke server
+### 3. Upload APK ke server
 
 ```powershell
 scp mobile\build\app\outputs\flutter-apk\app-release.apk deploy@203.194.115.28:/home/deploy/apps/ganesha-project/apk/app-release.apk
 ```
 
-### 3. Update versi di .env.production
+### 4. Update versi di .env.production
 
 SSH ke server, lalu:
 
 ```bash
 cd /home/deploy/apps/ganesha-project
 
-# Update versi (ganti 1.1.0 sesuai versi baru)
+# Isi versi SAMA dengan yang di pubspec.yaml (angka sebelum +)
+# Contoh: pubspec.yaml version: 1.1.0+1 → maka 1.1.0
 sed -i 's/APP_LATEST_VERSION=.*/APP_LATEST_VERSION=1.1.0/' .env.production
 ```
 
 > URL download tidak perlu diubah, sudah tetap (`app-release.apk`).
 > APK baru cukup ditimpa di folder yang sama.
 
-### 4. Restart container backend
+### 5. Restart container backend
 
 ```bash
 docker compose restart backend
@@ -41,7 +53,7 @@ docker compose restart backend
 
 > **Kenapa hanya backend?** Frontend container hanya serving file statis — APK yang diupload langsung terbaca tanpa restart karena di-mount sebagai volume.
 
-### 5. User update dari HP
+### 6. User update dari HP
 
 1. Buka menu **Pengaturan** di aplikasi
 2. Lihat section **Aplikasi** → muncul badge **"Update Tersedia"**
@@ -73,10 +85,11 @@ docker compose up -d --build
 
 ## Update Semua (APK + Backend + Frontend)
 
-1. Build APK di lokal (langkah 1)
-2. Upload APK ke server (langkah 2)
-3. SSH ke server, update `.env.production` (langkah 3)
-4. Git pull + rebuild container:
+1. Naikkan versi di `pubspec.yaml`
+2. Build APK di lokal
+3. Upload APK ke server
+4. SSH ke server, update `APP_LATEST_VERSION` di `.env.production`
+5. Git pull + rebuild container:
 
 ```bash
 cd /home/deploy/apps/ganesha-project
@@ -84,7 +97,7 @@ git pull origin main
 docker compose up -d --build
 ```
 
-5. Selesai — user bisa update dari HP
+6. Selesai — user bisa update dari HP
 
 ---
 
