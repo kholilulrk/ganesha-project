@@ -573,7 +573,16 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         padding: const EdgeInsets.all(16),
         child: Column(
         children: [
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                colors: [const Color(0xFF4F46E5).withOpacity(0.06), const Color(0xFF7C3AED).withOpacity(0.03)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.12)),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
@@ -597,18 +606,27 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                   ),
                   if (job.description != null && job.description!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(job.description!, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFF3B82F6).withOpacity(0.06),
+                        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.1)),
+                      ),
+                      child: Text(job.description!, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                    ),
                   ],
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       if (!isTeknisiLogistic)
-                        _InfoChip(label: 'Nilai', value: formatRupiah(job.value)),
+                        _InfoChip(label: 'Nilai', value: formatRupiah(job.value), color: const Color(0xFF4F46E5)),
                       if (!isTeknisiLogistic) const SizedBox(width: 12),
                       if (!isTeknisiLogistic)
-                        _InfoChip(label: 'Kontrak', value: _formatDate(job.contractDate)),
+                        _InfoChip(label: 'Kontrak', value: _formatDate(job.contractDate), color: const Color(0xFFF59E0B)),
                       if (!isTeknisiLogistic) const SizedBox(width: 12),
-                      _InfoChip(label: 'Dateline', value: _formatDate(job.dateline)),
+                      _InfoChip(label: 'Dateline', value: _formatDate(job.dateline), color: const Color(0xFFEF4444)),
                     ],
                   ),
                   if (!isTeknisiLogistic && _logistic.isNotEmpty) ...[
@@ -618,8 +636,8 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                     Row(children: [
                       _InfoChip(
                         label: 'Total Belanja',
-                        value:
-                            formatRupiah(_logistic.fold<double>(0, (s, i) => s + i.quantity * i.price)),
+                        value: formatRupiah(_logistic.fold<double>(0, (s, i) => s + i.quantity * i.price)),
+                        color: const Color(0xFF10B981),
                       ),
                     ]),
                   ],
@@ -654,8 +672,11 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          gradient: LinearGradient(
+                            colors: [Colors.red.shade50, Colors.red.shade50.withOpacity(0.5)],
+                          ),
                           borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -696,8 +717,18 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   Widget _buildActionButtons({bool canSelesaikan = false}) {
     final done = _isAllChecklistsDone();
     final isCompleted = widget.job.status == 'selesai' || widget.job.status == 'done';
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF22C55E).withOpacity(0.08), const Color(0xFF22C55E).withOpacity(0.02)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.15)),
+      ),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           if (!isCompleted && canSelesaikan)
@@ -806,6 +837,8 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               prefixIcon: const Icon(Icons.search, size: 20),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              fillColor: const Color(0xFF4F46E5).withOpacity(0.04),
+              filled: true,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -854,6 +887,8 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                       hintText: 'Tambah tugas teknisi...',
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      fillColor: const Color(0xFF4F46E5).withOpacity(0.04),
+                      filled: true,
                     ),
                     onSubmitted: (_) => _addTeknisi(),
                   ),
@@ -889,6 +924,8 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               prefixIcon: const Icon(Icons.search, size: 20),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              fillColor: const Color(0xFF10B981).withOpacity(0.04),
+              filled: true,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -935,22 +972,27 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               children: [
                 TextField(
                   controller: _logNama,
-                  decoration: const InputDecoration(hintText: 'Nama barang', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
+                  decoration: InputDecoration(
+                    hintText: 'Nama barang', isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    fillColor: const Color(0xFF10B981).withOpacity(0.04),
+                    filled: true,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Expanded(child: TextField(controller: _logQty, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Jumlah', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12)))),
+                    Expanded(child: TextField(controller: _logQty, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: 'Jumlah', isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), fillColor: const Color(0xFF10B981).withOpacity(0.04), filled: true))),
                     const SizedBox(width: 8),
-                    Expanded(child: TextField(controller: _logUnit, decoration: const InputDecoration(hintText: 'Satuan', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12)))),
+                    Expanded(child: TextField(controller: _logUnit, decoration: InputDecoration(hintText: 'Satuan', isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), fillColor: const Color(0xFF10B981).withOpacity(0.04), filled: true))),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Expanded(child: TextField(controller: _logNotes, decoration: const InputDecoration(hintText: 'Catatan', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12)))),
+                    Expanded(child: TextField(controller: _logNotes, decoration: InputDecoration(hintText: 'Catatan', isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), fillColor: const Color(0xFF10B981).withOpacity(0.04), filled: true))),
                     const SizedBox(width: 8),
-                    Expanded(child: TextField(controller: _logHarga, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Harga', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12)))),
+                    Expanded(child: TextField(controller: _logHarga, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: 'Harga', isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), fillColor: const Color(0xFF10B981).withOpacity(0.04), filled: true))),
                     const SizedBox(width: 8),
                     IconButton.filled(
                       onPressed: _addLogistic,
@@ -971,7 +1013,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   }
 
   Widget _buildKomentarTab() {
-    final theme = Theme.of(context);
     final user = context.watch<AuthProvider>().user;
     final topComments = _comments.where((c) => c['parent_id'] == null).toList();
 
@@ -1002,7 +1043,16 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 final replies = _comments.where((r) => r['parent_id'] == cId).toList();
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: Card(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [const Color(0xFFEC4899).withOpacity(0.06), const Color(0xFFEC4899).withOpacity(0.02)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFEC4899).withOpacity(0.1)),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -1012,10 +1062,10 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                             children: [
                               CircleAvatar(
                                 radius: 14,
-                                backgroundColor: const Color(0xFF4F46E5).withOpacity(0.1),
+                                backgroundColor: const Color(0xFFEC4899).withOpacity(0.15),
                                 child: Text(
                                   ((c['name']?.toString().isNotEmpty == true) ? c['name']!.toString()[0] : '?').toUpperCase(),
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFEC4899)),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -1034,7 +1084,16 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                             ],
                           ),
                           const SizedBox(height: 6),
-                          Text(c['text'] ?? '', style: const TextStyle(fontSize: 14)),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEC4899).withOpacity(0.03),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFEC4899).withOpacity(0.06)),
+                            ),
+                            child: Text(c['text'] ?? '', style: const TextStyle(fontSize: 14)),
+                          ),
                           const SizedBox(height: 4),
                           TextButton(
                             onPressed: () => setState(() => _replyParentId = _replyParentId == cId ? null : cId),
@@ -1060,37 +1119,49 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                             const Divider(height: 16),
                             ...replies.map((r) => Padding(
                               padding: const EdgeInsets.only(left: 16, top: 8),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 10,
-                                    backgroundColor: Colors.grey.shade200,
-                                    child: Text(
-                                      ((r['name']?.toString().isNotEmpty == true) ? r['name']!.toString()[0] : '?').toUpperCase(),
-                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
-                                    ),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [const Color(0xFFA855F7).withOpacity(0.05), const Color(0xFFA855F7).withOpacity(0.02)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Flexible(
-                                              child: Text(r['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(_formatDate(r['CreatedAt']), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(r['text'] ?? '', style: const TextStyle(fontSize: 13)),
-                                      ],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.08)),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 10,
+                                      backgroundColor: const Color(0xFFA855F7).withOpacity(0.15),
+                                      child: Text(
+                                        ((r['name']?.toString().isNotEmpty == true) ? r['name']!.toString()[0] : '?').toUpperCase(),
+                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFA855F7)),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(r['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(_formatDate(r['CreatedAt']), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(r['text'] ?? '', style: const TextStyle(fontSize: 13)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             )),
                           ],
@@ -1107,7 +1178,11 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         Container(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            gradient: LinearGradient(
+              colors: [const Color(0xFFEC4899).withOpacity(0.04), const Color(0xFFEC4899).withOpacity(0.01)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             border: Border(top: BorderSide(color: Colors.grey.shade200)),
           ),
           child: Row(
@@ -1115,10 +1190,12 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               Expanded(
                 child: TextField(
                   controller: _commentInputC,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Tulis komentar...',
                     isDense: true,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    fillColor: const Color(0xFFEC4899).withOpacity(0.04),
+                    filled: true,
                   ),
                   maxLines: 2,
                   minLines: 1,
@@ -1129,7 +1206,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 onPressed: _addComment,
                 icon: const Icon(Icons.send, size: 18),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF4F46E5),
+                  backgroundColor: const Color(0xFFEC4899),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -1155,21 +1232,25 @@ class _ProgressBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.08), color.withOpacity(0.02)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: color.withOpacity(0.15)),
       ),
       child: Row(
         children: [
           Text('$done/$total \u00B7 $pct%',
-              style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+              style: TextStyle(fontWeight: FontWeight.w600, color: color)),
           const SizedBox(width: 12),
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: total > 0 ? done / total : 0,
-                backgroundColor: Colors.grey.shade200,
+                backgroundColor: color.withOpacity(0.15),
                 color: color,
                 minHeight: 6,
               ),
@@ -1183,17 +1264,30 @@ class _ProgressBar extends StatelessWidget {
 
 class _InfoChip extends StatelessWidget {
   final String label, value;
-  const _InfoChip({required this.label, required this.value});
+  final Color color;
+  const _InfoChip({required this.label, required this.value, required this.color});
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.1), color.withOpacity(0.04)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.7), fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+          ],
+        ),
       ),
     );
   }
@@ -1275,8 +1369,20 @@ class _TeknisiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final Color cardColor = item.isDone
+        ? const Color(0xFF22C55E)
+        : const Color(0xFF4F46E5);
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cardColor.withOpacity(0.07), cardColor.withOpacity(0.02)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardColor.withOpacity(0.15)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -1350,8 +1456,20 @@ class _LogisticCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final Color cardColor = item.isDone
+        ? const Color(0xFF22C55E)
+        : const Color(0xFF10B981);
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cardColor.withOpacity(0.07), cardColor.withOpacity(0.02)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardColor.withOpacity(0.15)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

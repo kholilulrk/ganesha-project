@@ -779,16 +779,36 @@ async function completeJob() {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 16px;
-  padding: 12px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 1px solid var(--card-border-light);
 }
 
 .detail-info-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.detail-info-item:nth-child(1) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
+  border-color: rgba(99, 102, 241, 0.2);
+}
+.detail-info-item:nth-child(2) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.detail-info-item:nth-child(3) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.detail-info-item:nth-child(4) {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.detail-info-item:nth-child(5) {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(168, 85, 247, 0.04));
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 .detail-info-item label {
@@ -809,6 +829,14 @@ async function completeJob() {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.detail-section:first-of-type {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.03));
+  border-color: rgba(59, 130, 246, 0.15);
 }
 
 .section-label {
@@ -829,7 +857,10 @@ async function completeJob() {
 .complete-section {
   display: flex;
   justify-content: center;
-  padding: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(81, 207, 102, 0.08), rgba(81, 207, 102, 0.03));
+  border: 1px solid rgba(81, 207, 102, 0.15);
+  border-radius: 12px;
 }
 
 .btn-complete {
@@ -915,17 +946,21 @@ async function completeJob() {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  transition: background 0.2s;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(99, 102, 241, 0.02));
+  border-radius: 10px;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  transition: background 0.2s, transform 0.15s;
 }
 
 .checklist-row:hover {
-  background: var(--hover-bg);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
+  transform: translateX(2px);
 }
 
 .checklist-row.done {
-  opacity: 0.6;
+  background: linear-gradient(135deg, rgba(81, 207, 102, 0.08), rgba(81, 207, 102, 0.03));
+  border-color: rgba(81, 207, 102, 0.15);
+  opacity: 0.7;
 }
 
 .checklist-check {
@@ -1145,21 +1180,25 @@ async function completeJob() {
 }
 
 .logistic-card {
-  background: var(--card-bg);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.02));
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.12);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s;
 }
 
 .logistic-card:hover {
-  background: var(--hover-bg);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+  transform: translateX(2px);
 }
 
 .logistic-card.done {
-  opacity: 0.6;
+  background: linear-gradient(135deg, rgba(81, 207, 102, 0.08), rgba(81, 207, 102, 0.03));
+  border-color: rgba(81, 207, 102, 0.15);
+  opacity: 0.7;
 }
 
 .logistic-header {
@@ -1251,6 +1290,7 @@ async function completeJob() {
 
 .pdf-embed {
   border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.15);
   overflow: hidden;
 }
 
@@ -1261,6 +1301,11 @@ async function completeJob() {
   border-radius: 10px;
 }
 
+.detail-section:has(.pdf-embed) {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(239, 68, 68, 0.02));
+  border-color: rgba(239, 68, 68, 0.12);
+}
+
 .comment-list {
   display: flex;
   flex-direction: column;
@@ -1268,8 +1313,9 @@ async function completeJob() {
 }
 
 .comment-item {
-  background: var(--card-bg);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.06), rgba(236, 72, 153, 0.02));
+  border: 1px solid rgba(236, 72, 153, 0.1);
+  border-radius: 10px;
   padding: 12px 14px;
 }
 
@@ -1364,8 +1410,9 @@ async function completeJob() {
 
 .reply-item {
   padding: 8px 10px;
-  background: var(--hover-bg);
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.06), rgba(168, 85, 247, 0.02));
+  border: 1px solid rgba(168, 85, 247, 0.08);
+  border-radius: 8px;
 }
 
 /* Image Preview Modal */
