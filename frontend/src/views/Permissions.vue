@@ -116,6 +116,8 @@ const permissionGroups = [
     resource: 'absensi',
     actions: [
       { value: 'view', label: 'Lihat Data' },
+      { value: 'edit', label: 'Edit' },
+      { value: 'delete', label: 'Hapus' },
     ],
   },
 ]

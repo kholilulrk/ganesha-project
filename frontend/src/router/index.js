@@ -49,8 +49,11 @@ const router = createRouter({
 })
 
 const roleRestricted = (path) => {
-  if (path.startsWith('/permissions') || path.startsWith('/pengguna') || path.startsWith('/activity-log')) {
+  if (path.startsWith('/permissions') || path.startsWith('/activity-log')) {
     return ['Super Admin']
+  }
+  if (path.startsWith('/pengguna')) {
+    return ['Super Admin', 'Administrasi']
   }
   if (path.startsWith('/pengumuman')) {
     return ['Super Admin', 'Administrasi']

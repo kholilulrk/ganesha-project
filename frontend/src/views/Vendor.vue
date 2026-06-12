@@ -5,7 +5,7 @@
         <h1>Vendor</h1>
         <p>Kelola data vendor dan termin pembayaran</p>
       </div>
-      <button class="btn-add" @click="openVendorForm(null)">
+      <button v-if="perms.can('vendor', 'create')" class="btn-add" @click="openVendorForm(null)">
         <span>+</span> Tambah Vendor
       </button>
     </div>
@@ -83,7 +83,7 @@
                   <th>Jumlah (Rp)</th>
                   <th>Jatuh Tempo</th>
                   <th>Keterangan</th>
-                  <th class="th-actions">Aksi</th>
+            <th v-if="perms.can('vendor', 'edit') || perms.can('vendor', 'delete')" class="th-actions">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,10 +180,10 @@
             <td>{{ vendor.phone || '-' }}</td>
             <td>{{ vendor.email || '-' }}</td>
             <td>{{ vendor.job?.name || '-' }}</td>
-            <td class="td-actions">
-              <button class="btn-icon term" @click="openTerminModal(vendor)" title="Termin">&#128176;</button>
-              <button class="btn-icon edit" @click="openVendorForm(vendor)" title="Edit">&#9998;&#65039;</button>
-              <button class="btn-icon delete" @click="deleteVendor(vendor.ID)" title="Hapus">&#128465;&#65039;</button>
+            <td v-if="perms.can('vendor', 'edit') || perms.can('vendor', 'delete')" class="td-actions">
+              <button v-if="perms.can('vendor', 'edit')" class="btn-icon term" @click="openTerminModal(vendor)" title="Termin">&#128176;</button>
+              <button v-if="perms.can('vendor', 'edit')" class="btn-icon edit" @click="openVendorForm(vendor)" title="Edit">&#9998;&#65039;</button>
+              <button v-if="perms.can('vendor', 'delete')" class="btn-icon delete" @click="deleteVendor(vendor.ID)" title="Hapus">&#128465;&#65039;</button>
             </td>
           </tr>
         </tbody>
@@ -191,7 +191,7 @@
       <div v-if="!vendors.length" class="empty-state">
         <div class="empty-icon">&#127970;</div>
         <p>Belum ada vendor</p>
-        <button class="btn-add" @click="openVendorForm(null)">Tambah Vendor</button>
+        <button v-if="perms.can('vendor', 'create')" class="btn-add" @click="openVendorForm(null)">Tambah Vendor</button>
       </div>
     </div>
   </div>
@@ -202,6 +202,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { vendorAPI } from '../api/vendor'
 import { jobAPI } from '../api/job'
+import { usePermissionStore } from '../stores/permissions'
 
 useHead({
   title: 'Vendor',
@@ -210,6 +211,7 @@ useHead({
   ],
 })
 
+const perms = usePermissionStore()
 const vendors = ref([])
 const jobs = ref([])
 const showVendorForm = ref(false)

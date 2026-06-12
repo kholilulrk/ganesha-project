@@ -69,15 +69,15 @@
           <span v-if="!collapsed">Upload Dokumen</span>
         </router-link>
       </template>
-        <router-link v-if="!isLimitedRole" to="/absensi" class="nav-item" active-class="active">
+        <router-link v-if="perms.can('absensi', 'view')" to="/absensi" class="nav-item" active-class="active">
           <span class="nav-icon">📋</span>
           <span v-if="!collapsed">Data Absensi</span>
         </router-link>
-        <router-link v-if="!isLimitedRole" to="/pengumuman" class="nav-item" active-class="active">
+        <router-link v-if="perms.can('pengumuman', 'view')" to="/pengumuman" class="nav-item" active-class="active">
           <span class="nav-icon">&#128240;</span>
           <span v-if="!collapsed">Pengumuman</span>
         </router-link>
-        <router-link v-if="!isLimitedRole" to="/vendor" class="nav-item" active-class="active">
+        <router-link v-if="perms.can('vendor', 'view')" to="/vendor" class="nav-item" active-class="active">
         <span class="nav-icon">&#127970;</span>
         <span v-if="!collapsed">Vendor</span>
       </router-link>
@@ -106,7 +106,7 @@
           <span class="nav-icon">👤</span>
           <span v-if="!collapsed">Profile</span>
         </router-link>
-        <router-link v-if="user?.role === 'Super Admin'" to="/pengguna" class="nav-item sub-item" active-class="active">
+        <router-link v-if="perms.can('users', 'view')" to="/pengguna" class="nav-item sub-item" active-class="active">
           <span class="nav-icon">👥</span>
           <span v-if="!collapsed">Pengguna</span>
         </router-link>

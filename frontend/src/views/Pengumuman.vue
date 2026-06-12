@@ -2,7 +2,7 @@
   <div class="pengumuman-page">
     <div class="page-header">
       <h1>Pengumuman</h1>
-      <button class="btn-add" @click="openCreate">
+      <button v-if="perms.can('pengumuman', 'create')" class="btn-add" @click="openCreate">
         <span>+</span> Tambah Pengumuman
       </button>
     </div>
@@ -22,7 +22,7 @@
             <th>Mulai</th>
             <th>Selesai</th>
             <th>Status</th>
-            <th>Aksi</th>
+            <th v-if="perms.can('pengumuman', 'edit') || perms.can('pengumuman', 'delete')">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -34,13 +34,13 @@
             <td>
               <span class="status-badge" :class="getStatusClass(a)">{{ getStatusLabel(a) }}</span>
             </td>
-            <td class="actions-cell">
-              <button class="btn-icon" title="Edit" @click="openEdit(a)">&#9998;</button>
-              <button class="btn-icon" :title="a.is_active ? 'Nonaktifkan' : 'Aktifkan'" @click="handleToggle(a)">
+            <td v-if="perms.can('pengumuman', 'edit') || perms.can('pengumuman', 'delete')" class="actions-cell">
+              <button v-if="perms.can('pengumuman', 'edit')" class="btn-icon" title="Edit" @click="openEdit(a)">&#9998;</button>
+              <button v-if="perms.can('pengumuman', 'edit')" class="btn-icon" :title="a.is_active ? 'Nonaktifkan' : 'Aktifkan'" @click="handleToggle(a)">
                 <span v-if="a.is_active">&#10060;</span>
                 <span v-else>&#9989;</span>
               </button>
-              <button class="btn-icon btn-danger" title="Hapus" @click="handleDelete(a)">&#128465;</button>
+              <button v-if="perms.can('pengumuman', 'delete')" class="btn-icon btn-danger" title="Hapus" @click="handleDelete(a)">&#128465;</button>
             </td>
           </tr>
         </tbody>
@@ -92,6 +92,7 @@
 import { ref, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { announcementAPI } from '../api/announcement'
+import { usePermissionStore } from '../stores/permissions'
 
 useHead({
   title: 'Pengumuman',
@@ -100,6 +101,7 @@ useHead({
   ],
 })
 
+const perms = usePermissionStore()
 const announcements = ref([])
 const loading = ref(true)
 const showForm = ref(false)

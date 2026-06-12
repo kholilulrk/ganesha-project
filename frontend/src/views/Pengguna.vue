@@ -5,7 +5,7 @@
         <h1>Pengguna</h1>
         <p>Daftar seluruh pengguna terdaftar</p>
       </div>
-      <button v-if="isSuperAdmin" class="btn-add" @click="showAddForm">
+      <button v-if="perms.can('users', 'create')" class="btn-add" @click="showAddForm">
         <span>+</span> Tambah Pengguna
       </button>
     </div>
@@ -20,7 +20,7 @@
             <th>Role</th>
             <th>Telepon</th>
             <th>Daftar Pada</th>
-            <th v-if="isSuperAdmin" class="th-actions">Aksi</th>
+            <th v-if="perms.can('users', 'edit') || perms.can('users', 'delete')" class="th-actions">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -33,9 +33,9 @@
             </td>
             <td>{{ u.phone || '-' }}</td>
             <td class="td-date">{{ formatDate(u.CreatedAt) }}</td>
-            <td v-if="isSuperAdmin" class="td-actions">
-              <button class="btn-icon edit" @click="editUser(u)" title="Edit">&#9998;&#65039;</button>
-              <button class="btn-icon delete" @click="deleteUser(u.ID)" title="Hapus">&#128465;&#65039;</button>
+            <td v-if="perms.can('users', 'edit') || perms.can('users', 'delete')" class="td-actions">
+              <button v-if="perms.can('users', 'edit')" class="btn-icon edit" @click="editUser(u)" title="Edit">&#9998;&#65039;</button>
+              <button v-if="perms.can('users', 'delete')" class="btn-icon delete" @click="deleteUser(u.ID)" title="Hapus">&#128465;&#65039;</button>
             </td>
           </tr>
         </tbody>
@@ -100,6 +100,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { userAPI } from '../api/user'
 import { useAuthStore } from '../stores/auth'
+import { usePermissionStore } from '../stores/permissions'
 useHead({
   title: 'Pengguna',
   meta: [
@@ -108,7 +109,7 @@ useHead({
 })
 
 const auth = useAuthStore()
-const isSuperAdmin = computed(() => auth.user?.role === 'Super Admin')
+const perms = usePermissionStore()
 
 const users = ref([])
 const showForm = ref(false)

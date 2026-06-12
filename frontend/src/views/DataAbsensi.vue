@@ -42,7 +42,7 @@
             <th>Lembur Mulai</th>
             <th>Lembur Selesai</th>
             <th>Durasi Lembur</th>
-            <th v-if="isSuperAdmin">Aksi</th>
+            <th v-if="perms.can('absensi', 'edit') || perms.can('absensi', 'delete')">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -64,10 +64,10 @@
             <td>{{ r.type === 'lembur' ? (r.lembur_start || '-') : '-' }}</td>
             <td>{{ r.lembur_end || (r.type === 'lembur' ? 'Sedang lembur' : '-') }}</td>
             <td>{{ r.durasi_lembur || '-' }}</td>
-            <td v-if="isSuperAdmin">
+            <td v-if="perms.can('absensi', 'edit') || perms.can('absensi', 'delete')">
               <div class="action-btns">
-                <button class="btn-icon edit" @click="openEdit(r)" title="Edit">✏️</button>
-                <button class="btn-icon delete" @click="handleDelete(r)" title="Hapus">🗑️</button>
+                <button v-if="perms.can('absensi', 'edit')" class="btn-icon edit" @click="openEdit(r)" title="Edit">✏️</button>
+                <button v-if="perms.can('absensi', 'delete')" class="btn-icon delete" @click="handleDelete(r)" title="Hapus">🗑️</button>
               </div>
             </td>
           </tr>
@@ -138,6 +138,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useHead } from '@unhead/vue'
 import { useAuthStore } from '../stores/auth'
+import { usePermissionStore } from '../stores/permissions'
 import { attendanceAPI } from '../api/attendance'
 useHead({
   title: 'Data Absensi',
@@ -147,7 +148,7 @@ useHead({
 })
 
 const auth = useAuthStore()
-const isSuperAdmin = computed(() => auth.user?.role === 'Super Admin')
+const perms = usePermissionStore()
 
 const records = ref([])
 const loading = ref(true)
