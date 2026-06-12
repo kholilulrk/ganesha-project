@@ -53,7 +53,7 @@ func GetDashboardStats(c *gin.Context) {
 	logisticQuery.Count(&uncompletedLogistic)
 
 	var pendingJobsList []models.Job
-	jobListQuery := models.DB.Where("status = ?", "pending").Order("created_at DESC")
+	jobListQuery := models.DB.Order("updated_at DESC")
 	if !isAdmin {
 		jobListQuery = jobListQuery.Where(
 			"? = ANY(string_to_array(share, ',')) AND ? = ANY(string_to_array(assigned_to, ','))",

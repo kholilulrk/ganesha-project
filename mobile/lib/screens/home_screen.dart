@@ -104,6 +104,22 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
   }
 
+  String _statusBadge(String? status) {
+    switch (status) {
+      case 'Selesai': case 'done': return 'Selesai';
+      case 'Progres': case 'progres': return 'Progres';
+      default: return 'Pending';
+    }
+  }
+
+  Color _statusColor(String? status) {
+    switch (status) {
+      case 'Selesai': case 'done': return const Color(0xFF22C55E);
+      case 'Progres': case 'progres': return const Color(0xFF06B6D4);
+      default: return const Color(0xFFEAB308);
+    }
+  }
+
   String _sisaHari(DateTime expire) {
     final diff = expire.difference(DateTime.now()).inDays;
     if (diff <= 1) return 'Besok kadaluarsa';
@@ -289,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
             ],
 
-            // Recent Pending Jobs
+            // Recent Opened Jobs
             if (recentPending.isNotEmpty) ...[
               FadeSlideIn(
                 child: Container(
@@ -302,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Pekerjaan Pending Terbaru', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                      const Text('Baru Dibuka', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                       const SizedBox(height: 12),
                       ...recentPending.take(5).map((job) => FadeSlideIn(
                         index: recentPending.indexOf(job),
@@ -325,14 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEAB308).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text('Pending', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFFEAB308))),
-                                ),
+                                Text(_statusBadge(job.status), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _statusColor(job.status))),
                               ],
                             ),
                           ),
