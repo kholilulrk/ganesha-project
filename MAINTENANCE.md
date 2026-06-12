@@ -1,171 +1,72 @@
-# Maintenance Guide — Ganesha Project
+# Cara Update Aplikasi dari HP
 
-## Prasyarat
+## Update APK Baru
 
-| Tools | Versi Minimal |
-|---|---|
-| Go | 1.25+ |
-| Node.js | 20+ |
-| Flutter | (sesuai project) |
-| Docker & Docker Compose | latest |
+Setiap ada perubahan di mobile (Flutter), lakukan langkah berikut:
 
----
+### 1. Build APK di lokal (Windows)
 
-## Struktur Proyek
-
-```
-├── backend/          # Go API (Gin + GORM + PostgreSQL)
-├── frontend/         # Vue 3 + Vite + Pinia
-├── mobile/           # Flutter app
-├── docker-compose.yml
-├── deploy.sh         # Deploy ke VPS via rsync + SSH
-└── .env.production   # Environment production
-```
-
----
-
-## Development (Local)
-
-### Backend
-
-```bash
-cd backend
-# pastikan .env sudah terisi (copy dari .env.production)
-go run main.go
-```
-
-Default port: `8080`
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Default port: `5173`
-
-### Mobile
-
-```bash
+```powershell
 cd mobile
-flutter pub get
-flutter run
+flutter build apk --release
 ```
 
-> Catatan: Build APK release dilakukan dari lokal, bukan dari server.
+Hasil: `mobile/build/app/outputs/flutter-apk/app-release.apk`
+
+### 2. Upload APK ke server
+
+```powershell
+scp mobile\build\app\outputs\flutter-apk\app-release.apk deploy@203.194.115.28:/home/deploy/apps/ganesha-project/apk/app-release.apk
+```
+
+### 3. Set versi terbaru di backend
+
+SSH ke server, lalu:
+
+```bash
+cd /home/deploy/apps/ganesha-project/backend
+
+# Update versi (ganti sesuai versi baru)
+sed -i 's/APP_LATEST_VERSION=.*/APP_LATEST_VERSION=1.1.0/' .env.production
+sed -i 's|APP_DOWNLOAD_URL=.*|APP_DOWNLOAD_URL=http://203.194.115.28/apk/app-release.apk|' .env.production
+
+# Restart backend
+sudo systemctl restart ganesha-backend
+```
+
+> Jika file `.env.production` belum ada, buat dengan isi minimal:
+> ```
+> APP_LATEST_VERSION=1.1.0
+> APP_DOWNLOAD_URL=http://203.194.115.28/apk/app-release.apk
+> ```
+
+### 4. User update dari HP
+
+1. Buka menu **Pengaturan** di aplikasi
+2. Lihat section **Aplikasi** → akan muncul badge **"Update Tersedia"**
+3. Tap tombol **Perbarui Aplikasi**
+4. APK akan terdownload dan install secara otomatis
 
 ---
 
-## Production (Docker)
+## Update Backend (tanpa update APK)
 
-### Deploy
-
-```bash
-# Deploy ke VPS (otomatis rsync + compose up)
-./deploy.sh <ip> <user>
-
-# Atau manual di server
-docker compose up -d --build
-```
-
-### Service
-
-| Service | Port | URL |
-|---|---|---|
-| Frontend | 80 | `http://<ip>` |
-| Backend API | 8080 | `http://<ip>/api` |
-| Health Check | 8080 | `http://<ip>/health` |
-| PostgreSQL | 5432 | internal |
-
-### Logs
+Backend cukup di-deploy ulang tanpa perlu tindakan dari user:
 
 ```bash
-docker compose logs -f backend
-docker compose logs -f frontend
-docker compose logs -f db
-```
-
-### Restart Service Tertentu
-
-```bash
-docker compose restart backend
-docker compose restart frontend
-docker compose restart db
-```
-
-### Update Dependensi + Rebuild
-
-```bash
-# Backend (update Go modules)
-cd backend
-go get -u ./...
-go mod tidy
-cd ..
-
-# Frontend (update npm packages)
-cd frontend
-npm update
-cd ..
-
-# Rebuild & deploy
-docker compose up -d --build
+cd /home/deploy/apps/ganesha-project/backend
+git pull origin main
+go build -o ganesha-backend .
+sudo systemctl restart ganesha-backend
 ```
 
 ---
 
-## Database
+## Struktur Folder APK di Server
 
-### Backup Manual
-
-```bash
-docker exec -t ganesha-project-db-1 pg_dump -U postgres ganesha > backup_$(date +%Y%m%d_%H%M%S).sql
+```
+/home/deploy/apps/ganesha-project/apk/
+  └── app-release.apk
 ```
 
-### Restore
-
-```bash
-docker exec -i ganesha-project-db-1 psql -U postgres ganesha < backup_FILE.sql
-```
-
-### Masuk ke DB
-
-```bash
-docker exec -it ganesha-project-db-1 psql -U postgres -d ganesha
-```
-
----
-
-## Troubleshooting
-
-| Masalah | Solusi |
-|---|---|
-| **Port 80/8080 sudah dipakai** | Cek `netstat -tulpn` atau ganti port di `docker-compose.yml` |
-| **DB connection refused** | Pastikan container `db` sudah healthy: `docker compose ps` |
-| **Upload file gagal** | Cek volume `uploads_data`: `docker volume ls` |
-| **Frontend blank** | Cek console browser, pastikan `VITE_API_URL` benar di build |
-| **JWT error** | Generate ulang `JWT_SECRET` di `.env.production` |
-| **Image size membesar** | `docker image prune -a` hapus image tidak terpakai |
-
----
-
-## Periodic Maintenance
-
-| Frekuensi | Tugas | Command |
-|---|---|---|
-| Harian | Cek log error | `docker compose logs --tail=50 backend` |
-| Mingguan | Backup database | `docker exec ... pg_dump > backup.sql` |
-| Bulanan | Update dependensi | `go get -u`, `npm update` |
-| Bulanan | Prune Docker | `docker system prune -f` |
-| 3 Bulan | Update image base | rebuild ulang `docker compose build --no-cache` |
-
----
-
-## Catatan — Service di Server
-
-| Project | Akses |
-|---|---|
-| **Ganesha** frontend | `http://<ip>` (port 80) |
-| **Project-Kita** frontend | `http://<ip>:8083` |
-| **Keuangan** frontend | `http://<ip>:8082` |
+Folder `apk/` diserve oleh Nginx agar bisa diakses publik (digunakan untuk download dari HP).
