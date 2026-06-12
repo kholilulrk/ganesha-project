@@ -26,7 +26,7 @@ class JobDetailScreen extends StatefulWidget {
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin {
   late TabController _tabC;
   List<ChecklistItem> _teknisi = [];
   List<ChecklistItem> _logistic = [];
@@ -37,7 +37,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   int _seenCommentCount = 0;
   bool _hasTeknisi = true;
   bool _hasLogistic = true;
-  Timer? _timer;
   bool _isLoadingAll = false;
 
   final _tekSearch = TextEditingController();
@@ -65,7 +64,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     final user = context.read<AuthProvider>().user;
     final role = user?.role ?? '';
     final shared = widget.job.sharedRoles;
@@ -74,24 +72,10 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     final tabCount = 1 + (_hasTeknisi ? 1 : 0) + (_hasLogistic ? 1 : 0) + 1;
     _tabC = TabController(length: tabCount, vsync: this);
     _loadAll();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _loadAll());
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      _timer?.cancel();
-      _timer = null;
-    } else if (state == AppLifecycleState.resumed) {
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 30), (_) => _loadAll());
-      _loadAll();
-    }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _tabC.dispose();
     _tekSearch.dispose();
     _logSearch.dispose();
@@ -108,7 +92,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     _editFormHarga.dispose();
     _commentInputC.dispose();
     _replyC.dispose();
-    _timer?.cancel();
     super.dispose();
   }
 
