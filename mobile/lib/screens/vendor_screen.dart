@@ -127,7 +127,7 @@ class _VendorScreenState extends State<VendorScreen> {
     } catch (_) {}
   }
 
-  Future<void> _showPaymentTerms(Vendor v) async {
+  Future<void> _showPaymentTerms(Vendor v, {required bool canEdit}) async {
     List<PaymentTerm> terms = [];
     bool loadingTerms = true;
     String? termsError;
@@ -225,125 +225,129 @@ class _VendorScreenState extends State<VendorScreen> {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.edit_outlined, size: 16, color: Colors.grey.shade500),
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(4),
-                                onPressed: () {
-                                  setDialogState(() {
-                                    editingTerm = true;
-                                    editTermId = t.id;
-                                    tcNumber.text = t.termNumber.toString();
-                                    tcPercentage.text = t.percentage?.toStringAsFixed(0) ?? '';
-                                    tcAmount.text = t.amount?.toStringAsFixed(0) ?? '';
-                                    tcDueDate.text = t.dueDate ?? '';
-                                    tcDescription.text = t.description ?? '';
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete_outline, size: 16, color: Colors.red.shade300),
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(4),
-                                onPressed: () async {
-                                  await VendorService.deletePaymentTerm(v.id, t.id);
-                                  await refreshTerms();
-                                },
-                              ),
+                              if (canEdit)
+                                IconButton(
+                                  icon: Icon(Icons.edit_outlined, size: 16, color: Colors.grey.shade500),
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(4),
+                                  onPressed: () {
+                                    setDialogState(() {
+                                      editingTerm = true;
+                                      editTermId = t.id;
+                                      tcNumber.text = t.termNumber.toString();
+                                      tcPercentage.text = t.percentage?.toStringAsFixed(0) ?? '';
+                                      tcAmount.text = t.amount?.toStringAsFixed(0) ?? '';
+                                      tcDueDate.text = t.dueDate ?? '';
+                                      tcDescription.text = t.description ?? '';
+                                    });
+                                  },
+                                ),
+                              if (canEdit)
+                                IconButton(
+                                  icon: Icon(Icons.delete_outline, size: 16, color: Colors.red.shade300),
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(4),
+                                  onPressed: () async {
+                                    await VendorService.deletePaymentTerm(v.id, t.id);
+                                    await refreshTerms();
+                                  },
+                                ),
                             ],
                           ),
                         )),
-                      const Divider(),
-                      Text(editingTerm ? 'Edit Termin' : 'Tambah Termin', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: tcNumber,
-                              decoration: const InputDecoration(labelText: 'Termin ke-', isDense: true),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: tcPercentage,
-                              decoration: const InputDecoration(labelText: 'Persentase (%)', isDense: true),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: tcAmount,
-                              decoration: const InputDecoration(labelText: 'Jumlah (Rp)', isDense: true),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime(2030),
-                                );
-                                if (picked != null) tcDueDate.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-                              },
-                              child: InputDecorator(
-                                decoration: const InputDecoration(labelText: 'Jatuh Tempo', isDense: true),
-                                child: Text(tcDueDate.text.isEmpty ? 'Pilih' : tcDueDate.text, style: TextStyle(fontSize: 13, color: tcDueDate.text.isEmpty ? Colors.grey : null)),
+                      if (canEdit) const Divider(),
+                      if (canEdit) Text(editingTerm ? 'Edit Termin' : 'Tambah Termin', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      if (canEdit) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: tcNumber,
+                                decoration: const InputDecoration(labelText: 'Termin ke-', isDense: true),
+                                keyboardType: TextInputType.number,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: tcDescription,
-                        decoration: const InputDecoration(labelText: 'Keterangan', isDense: true),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => setDialogState(resetTermForm),
-                            child: const Text('Batal'),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                final body = {
-                                  'term_number': int.tryParse(tcNumber.text) ?? 1,
-                                  'percentage': double.tryParse(tcPercentage.text),
-                                  'amount': double.tryParse(tcAmount.text),
-                                  'due_date': tcDueDate.text.isEmpty ? null : tcDueDate.text,
-                                  'description': tcDescription.text.isEmpty ? null : tcDescription.text,
-                                };
-                                if (editingTerm && editTermId != null) {
-                                  await VendorService.updatePaymentTerm(v.id, editTermId!, body);
-                                } else {
-                                  await VendorService.createPaymentTerm(v.id, body);
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: tcPercentage,
+                                decoration: const InputDecoration(labelText: 'Persentase (%)', isDense: true),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: tcAmount,
+                                decoration: const InputDecoration(labelText: 'Jumlah (Rp)', isDense: true),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(2030),
+                                  );
+                                  if (picked != null) tcDueDate.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                                },
+                                child: InputDecorator(
+                                  decoration: const InputDecoration(labelText: 'Jatuh Tempo', isDense: true),
+                                  child: Text(tcDueDate.text.isEmpty ? 'Pilih' : tcDueDate.text, style: TextStyle(fontSize: 13, color: tcDueDate.text.isEmpty ? Colors.grey : null)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: tcDescription,
+                          decoration: const InputDecoration(labelText: 'Keterangan', isDense: true),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => setDialogState(resetTermForm),
+                              child: const Text('Batal'),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  final body = {
+                                    'term_number': int.tryParse(tcNumber.text) ?? 1,
+                                    'percentage': double.tryParse(tcPercentage.text),
+                                    'amount': double.tryParse(tcAmount.text),
+                                    'due_date': tcDueDate.text.isEmpty ? null : tcDueDate.text,
+                                    'description': tcDescription.text.isEmpty ? null : tcDescription.text,
+                                  };
+                                  if (editingTerm && editTermId != null) {
+                                    await VendorService.updatePaymentTerm(v.id, editTermId!, body);
+                                  } else {
+                                    await VendorService.createPaymentTerm(v.id, body);
+                                  }
+                                  resetTermForm();
+                                  await refreshTerms();
+                                } catch (e) {
+                                  setDialogState(() => termsError = '$e');
                                 }
-                                resetTermForm();
-                                await refreshTerms();
-                              } catch (e) {
-                                setDialogState(() => termsError = '$e');
-                              }
-                            },
-                            child: Text(editingTerm ? 'Simpan' : 'Tambah'),
-                          ),
-                        ],
-                      ),
+                              },
+                              child: Text(editingTerm ? 'Simpan' : 'Tambah'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -440,7 +444,7 @@ class _VendorScreenState extends State<VendorScreen> {
                                                   color: const Color(0xFF10B981),
                                                   constraints: const BoxConstraints(),
                                                   padding: const EdgeInsets.all(4),
-                                                  onPressed: () => _showPaymentTerms(v),
+                                                  onPressed: () => _showPaymentTerms(v, canEdit: canEdit),
                                                 ),
                                                 if (canEdit)
                                                   IconButton(

@@ -51,6 +51,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     ]),
     _PermGroup(label: 'Absensi', resource: 'absensi', actions: [
       _PermAction(value: 'view', label: 'Lihat Data'),
+      _PermAction(value: 'edit', label: 'Edit'),
+      _PermAction(value: 'delete', label: 'Hapus'),
     ]),
   ];
 

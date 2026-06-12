@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/attendance.dart';
 import '../providers/auth_provider.dart';
+import '../providers/permission_provider.dart';
 import '../services/attendance_service.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -70,7 +71,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSuperAdmin = auth.user?.role == 'Super Admin';
+    final perm = context.watch<PermissionProvider>();
+    final canDelete = perm.can('absensi', 'delete', isSuperAdmin: auth.user?.role == 'Super Admin');
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -179,7 +181,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 final att = _records[i];
                                 return _AttendanceTile(
                                   attendance: att,
-                                  isSuperAdmin: isSuperAdmin,
+                                  canDelete: canDelete,
                                   onDelete: () => _deleteRecord(att),
                                 );
                               },
@@ -194,12 +196,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
 class _AttendanceTile extends StatelessWidget {
   final Attendance attendance;
-  final bool isSuperAdmin;
+  final bool canDelete;
   final VoidCallback onDelete;
 
   const _AttendanceTile({
     required this.attendance,
-    required this.isSuperAdmin,
+    required this.canDelete,
     required this.onDelete,
   });
 
@@ -285,7 +287,7 @@ class _AttendanceTile extends StatelessWidget {
               ],
             ),
           ),
-          if (isSuperAdmin)
+          if (canDelete)
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
               onPressed: onDelete,

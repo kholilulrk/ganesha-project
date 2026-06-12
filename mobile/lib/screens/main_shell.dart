@@ -105,7 +105,9 @@ class _MainShellState extends State<MainShell> {
       screenList.add(const MonitoringSuratScreen());
       titles.add('Surat');
       icons.add(Icons.description_rounded);
+    }
 
+    if (perm.can('absensi', 'view', isSuperAdmin: isSuperAdmin)) {
       screenList.add(const AttendanceScreen());
       titles.add('Absensi');
       icons.add(Icons.fact_check_rounded);
