@@ -45,6 +45,9 @@ services:
       - backend
     ports:
       - "80:80"
+    volumes:
+      - ./apk:/usr/share/nginx/html/apk:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   postgres_data:

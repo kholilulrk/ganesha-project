@@ -24,21 +24,27 @@ scp mobile\build\app\outputs\flutter-apk\app-release.apk deploy@203.194.115.28:/
 SSH ke server, lalu:
 
 ```bash
-cd /home/deploy/apps/ganesha-project/backend
+# Masuk ke direktori project (sesuai struktur deploy)
+cd /home/deploy/apps/ganesha-project
 
 # Update versi (ganti sesuai versi baru)
 sed -i 's/APP_LATEST_VERSION=.*/APP_LATEST_VERSION=1.1.0/' .env.production
 sed -i 's|APP_DOWNLOAD_URL=.*|APP_DOWNLOAD_URL=http://203.194.115.28/apk/app-release.apk|' .env.production
 
-# Restart backend
-sudo systemctl restart ganesha-backend
+# Restart ulang container agar backend baca env baru
+# (volume mount ./apk juga langsung kebaca tanpa restart)
+docker compose restart backend
 ```
 
-> Jika file `.env.production` belum ada, buat dengan isi minimal:
+> File `.env.production` minimal:
 > ```
 > APP_LATEST_VERSION=1.1.0
 > APP_DOWNLOAD_URL=http://203.194.115.28/apk/app-release.apk
 > ```
+>
+> **Catatan:** APK diserve langsung oleh Docker Nginx (frontend container).
+> APK diletakkan di folder `apk/` selevel dengan `docker-compose.yml`.
+> Tidak perlu install Nginx terpisah atau config system Nginx.
 
 ### 4. User update dari HP
 
@@ -65,8 +71,13 @@ sudo systemctl restart ganesha-backend
 ## Struktur Folder APK di Server
 
 ```
-/home/deploy/apps/ganesha-project/apk/
-  └── app-release.apk
+/home/deploy/apps/ganesha-project/
+  ├── apk/
+  │   └── app-release.apk    <-- APK disini, di-mount ke frontend container
+  ├── docker-compose.yml
+  ├── frontend/
+  │   └── nginx.conf         <-- sudah ada location /apk/
+  └── ...
 ```
 
-Folder `apk/` diserve oleh Nginx agar bisa diakses publik (digunakan untuk download dari HP).
+Folder `apk/` di-mount ke frontend container (`docker-compose.yml`) dan diserve oleh Nginx internal Docker agar bisa diakses publik lewat `http://203.194.115.28/apk/app-release.apk` (digunakan untuk download dari HP).
