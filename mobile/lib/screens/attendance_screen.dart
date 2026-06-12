@@ -273,7 +273,7 @@ class _AttendanceTile extends StatelessWidget {
                 if (attendance.isLembur) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Lembur: ${attendance.clockIn ?? "-"} → ${attendance.clockOut ?? "Sedang lembur"}${attendance.durasiLembur != null ? " · ${attendance.durasiLembur}" : ""}',
+                    'Lembur: ${attendance.lemburStart ?? "-"} → ${attendance.lemburEnd ?? "Sedang lembur"}${attendance.durasiLembur != null ? " · ${attendance.durasiLembur}" : ""}',
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                   ),
                 ],

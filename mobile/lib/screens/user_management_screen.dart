@@ -202,7 +202,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final auth = context.watch<AuthProvider>();
     final perm = context.watch<PermissionProvider>();
     final isSuperAdmin = auth.user?.role == 'Super Admin';
-    final canManageUsers = perm.can('users', 'manage', isSuperAdmin: isSuperAdmin);
+    final canManageUsers = perm.can('users', 'view', isSuperAdmin: isSuperAdmin);
     final theme = Theme.of(context);
 
     return Scaffold(

@@ -13,6 +13,8 @@ class Attendance {
   final String? durasiLembur;
   final int? lemburJam;
   final int? lemburMenit;
+  final String? lemburStart;
+  final String? lemburEnd;
   final User? user;
 
   Attendance({
@@ -28,6 +30,8 @@ class Attendance {
     this.durasiLembur,
     this.lemburJam,
     this.lemburMenit,
+    this.lemburStart,
+    this.lemburEnd,
     this.user,
   });
 
@@ -52,6 +56,8 @@ class Attendance {
       durasiLembur: json['durasi_lembur'],
       lemburJam: json['lembur_jam'],
       lemburMenit: json['lembur_menit'],
+      lemburStart: json['lembur_start'] ?? json['LemburStart'],
+      lemburEnd: json['lembur_end'] ?? json['LemburEnd'],
       user: user,
     );
   }
@@ -60,7 +66,7 @@ class Attendance {
   bool get isTidakHadir => type == 'tidak_hadir';
   bool get isLembur => type == 'lembur';
   bool get isLuarKota => location == 'luar_kota';
-  bool get isLemburSelesai => clockOut != null && clockOut!.isNotEmpty;
+  bool get isLemburSelesai => lemburEnd != null && lemburEnd!.isNotEmpty;
 
   String get displayType {
     if (typeDisplay != null) return typeDisplay!;

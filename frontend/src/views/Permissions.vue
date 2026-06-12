@@ -85,7 +85,30 @@ const permissionGroups = [
     label: 'Pengguna',
     resource: 'users',
     actions: [
-      { value: 'manage', label: 'Kelola' },
+      { value: 'view', label: 'Lihat' },
+      { value: 'create', label: 'Buat' },
+      { value: 'edit', label: 'Edit' },
+      { value: 'delete', label: 'Hapus' },
+    ],
+  },
+  {
+    label: 'Pengumuman',
+    resource: 'pengumuman',
+    actions: [
+      { value: 'view', label: 'Lihat' },
+      { value: 'create', label: 'Buat' },
+      { value: 'edit', label: 'Edit' },
+      { value: 'delete', label: 'Hapus' },
+    ],
+  },
+  {
+    label: 'Vendor',
+    resource: 'vendor',
+    actions: [
+      { value: 'view', label: 'Lihat' },
+      { value: 'create', label: 'Buat' },
+      { value: 'edit', label: 'Edit' },
+      { value: 'delete', label: 'Hapus' },
     ],
   },
   {

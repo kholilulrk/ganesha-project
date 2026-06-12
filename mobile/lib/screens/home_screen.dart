@@ -922,12 +922,12 @@ class _AttendanceCard extends StatelessWidget {
         actions = null;
       } else if (isLembur && isLemburSelesai) {
         title = 'Lembur Selesai';
-        final durasi = _hitungDurasi(attendance!.clockIn!, attendance!.clockOut!);
+        final durasi = _hitungDurasi(attendance!.lemburStart!, attendance!.lemburEnd!);
         subtitle = 'Durasi: $durasi';
         actions = null;
       } else if (isLembur) {
         title = 'Sedang Lembur';
-        subtitle = 'Mulai ${attendance!.clockIn ?? "-"}';
+        subtitle = 'Mulai ${attendance!.lemburStart ?? "-"}';
         actions = [
           _ActionButton(label: 'Akhiri Lembur', color: const Color(0xFF4F46E5), onTap: onLemburEnd),
         ];

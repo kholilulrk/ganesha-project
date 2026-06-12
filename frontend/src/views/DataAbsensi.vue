@@ -61,8 +61,8 @@
             <td><span class="type-badge" :class="typeClass(r)">{{ r.type_display || r.type }}</span></td>
             <td>{{ r.clock_in || '-' }}</td>
             <td>{{ locationLabel(r) }}</td>
-            <td>{{ r.type === 'lembur' ? (r.clock_in || '-') : '-' }}</td>
-            <td>{{ r.clock_out || (r.type === 'lembur' ? 'Sedang lembur' : '-') }}</td>
+            <td>{{ r.type === 'lembur' ? (r.lembur_start || '-') : '-' }}</td>
+            <td>{{ r.lembur_end || (r.type === 'lembur' ? 'Sedang lembur' : '-') }}</td>
             <td>{{ r.durasi_lembur || '-' }}</td>
             <td v-if="isSuperAdmin">
               <div class="action-btns">
@@ -104,8 +104,12 @@
               <input v-model="editForm.clock_in" type="time" class="form-input" />
             </div>
             <div class="form-group" v-if="editForm.type === 'lembur'">
-              <label>Jam Lembur Selesai</label>
-              <input v-model="editForm.clock_out" type="time" class="form-input" />
+              <label>Jam Mulai Lembur</label>
+              <input v-model="editForm.lembur_start" type="time" class="form-input" />
+            </div>
+            <div class="form-group" v-if="editForm.type === 'lembur'">
+              <label>Jam Selesai Lembur</label>
+              <input v-model="editForm.lembur_end" type="time" class="form-input" />
             </div>
             <div class="form-group">
               <label>Alasan (jika tidak hadir)</label>
@@ -202,6 +206,8 @@ function openEdit(r) {
     location: r.location || 'kantor',
     clock_in: r.clock_in || '',
     clock_out: r.clock_out || '',
+    lembur_start: r.lembur_start || '',
+    lembur_end: r.lembur_end || '',
     reason: r.reason || '',
     date: r.date || filterDate.value,
   }

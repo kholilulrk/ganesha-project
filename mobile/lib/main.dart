@@ -19,6 +19,8 @@ import 'screens/monitoring_surat_screen.dart';
 import 'screens/kelengkapan_dokumen_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/pengumuman_screen.dart';
+import 'screens/vendor_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +69,8 @@ class WebsiteApp extends StatelessWidget {
         '/documents': (context) => const DocumentManagementScreen(),
         '/monitoring-surat': (context) => const MonitoringSuratScreen(),
         '/kelengkapan-dokumen': (context) => const KelengkapanDokumenScreen(),
+        '/pengumuman': (context) => const PengumumanScreen(),
+        '/vendor': (context) => const VendorScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/shared') {

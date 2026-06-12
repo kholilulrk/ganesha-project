@@ -328,8 +328,8 @@ const showAttendanceActions = computed(() => {
     if (!attendanceRecord.value) return false
     if (attendanceRecord.value.type === 'tidak_hadir') return false
     if (attendanceRecord.value.location === 'luar_kota') return false
-    if (attendanceRecord.value.type === 'lembur' && !attendanceRecord.value.clock_out) return true
-    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.clock_out) return false
+    if (attendanceRecord.value.type === 'lembur' && !attendanceRecord.value.lembur_end) return true
+    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.lembur_end) return false
     return true
   }
   if (!attendanceRecord.value) return true
@@ -358,7 +358,7 @@ const showAkhiriLemburBtn = computed(() => {
   if (!isOvertimeTime.value) return false
   if (!attendanceRecord.value) return false
   if (attendanceRecord.value.type !== 'lembur') return false
-  return !attendanceRecord.value.clock_out
+  return !attendanceRecord.value.lembur_end
 })
 
 const attendanceCardClass = computed(() => {
@@ -388,11 +388,11 @@ const attendanceDesc = computed(() => {
     if (!attendanceRecord.value) return 'Belum absen hari ini'
     if (attendanceRecord.value.type === 'tidak_hadir') return 'Tidak bisa lembur'
     if (attendanceRecord.value.location === 'luar_kota') return 'Tidak bisa lembur (luar kota)'
-    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.clock_out) {
-      const durasi = hitungDurasi(attendanceRecord.value.clock_in, attendanceRecord.value.clock_out)
+    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.lembur_end) {
+      const durasi = hitungDurasi(attendanceRecord.value.lembur_start, attendanceRecord.value.lembur_end)
       return `Lembur selesai · ${durasi}`
     }
-    if (attendanceRecord.value.type === 'lembur') return `Mulai ${attendanceRecord.value.clock_in}`
+    if (attendanceRecord.value.type === 'lembur') return `Mulai ${attendanceRecord.value.lembur_start}`
     return `Absen ${attendanceRecord.value.clock_in} · Klik untuk lembur`
   }
   if (attendanceRecord.value?.type === 'hadir' && attendanceRecord.value?.clock_in) {
@@ -408,8 +408,8 @@ const attendanceDesc = computed(() => {
 })
 
 const attendanceStatus = computed(() => {
-  if (isOvertimeTime.value && attendanceRecord.value?.type === 'lembur' && attendanceRecord.value?.clock_out) {
-    const durasi = hitungDurasi(attendanceRecord.value.clock_in, attendanceRecord.value.clock_out)
+  if (isOvertimeTime.value && attendanceRecord.value?.type === 'lembur' && attendanceRecord.value?.lembur_end) {
+    const durasi = hitungDurasi(attendanceRecord.value.lembur_start, attendanceRecord.value.lembur_end)
     return `Durasi: ${durasi}`
   }
   return ''

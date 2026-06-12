@@ -14,6 +14,8 @@ import 'document_management_screen.dart';
 import 'monitoring_surat_screen.dart';
 import 'kelengkapan_dokumen_screen.dart';
 import 'attendance_screen.dart';
+import 'pengumuman_screen.dart';
+import 'vendor_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -109,7 +111,19 @@ class _MainShellState extends State<MainShell> {
       icons.add(Icons.fact_check_rounded);
     }
 
-    if (isSuperAdmin) {
+    if (perm.can('pengumuman', 'view', isSuperAdmin: isSuperAdmin)) {
+      screenList.add(const PengumumanScreen());
+      titles.add('Pengumuman');
+      icons.add(Icons.campaign_rounded);
+    }
+
+    if (perm.can('vendor', 'view', isSuperAdmin: isSuperAdmin)) {
+      screenList.add(const VendorScreen());
+      titles.add('Vendor');
+      icons.add(Icons.store_rounded);
+    }
+
+    if (perm.can('users', 'view', isSuperAdmin: isSuperAdmin)) {
       screenList.add(const UserManagementScreen());
       titles.add('Pengguna');
       icons.add(Icons.people_alt_rounded);

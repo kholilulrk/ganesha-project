@@ -200,6 +200,7 @@ func AttendanceLemburStart(c *gin.Context) {
 	}
 
 	existing.Type = "lembur"
+	existing.LemburStart = currentTimeString()
 	if err := models.DB.Save(&existing).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan lembur"})
 		return
@@ -222,12 +223,12 @@ func AttendanceLemburEnd(c *gin.Context) {
 		return
 	}
 
-	if existing.ClockOut != "" {
+	if existing.LemburEnd != "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Lembur sudah diakhiri"})
 		return
 	}
 
-	existing.ClockOut = currentTimeString()
+	existing.LemburEnd = currentTimeString()
 	if err := models.DB.Save(&existing).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan"})
 		return
@@ -286,8 +287,8 @@ func GetAttendanceReport(c *gin.Context) {
 			}
 		} else if r.Type == "lembur" {
 			item.TypeDisplay = "Hadir + Lembur"
-			if r.ClockOut != "" {
-				durasi, jam, menit := formatDuration(r.ClockIn, r.ClockOut)
+			if r.LemburEnd != "" {
+				durasi, jam, menit := formatDuration(r.LemburStart, r.LemburEnd)
 				item.DurasiLembur = durasi
 				item.LemburJam = jam
 				item.LemburMenit = menit
@@ -318,12 +319,14 @@ func UpdateAttendanceRecord(c *gin.Context) {
 	}
 
 	var input struct {
-		Type     string `json:"type"`
-		Location string `json:"location"`
-		Reason   string `json:"reason"`
-		ClockIn  string `json:"clock_in"`
-		ClockOut string `json:"clock_out"`
-		Date     string `json:"date"`
+		Type        string `json:"type"`
+		Location    string `json:"location"`
+		Reason      string `json:"reason"`
+		ClockIn     string `json:"clock_in"`
+		ClockOut    string `json:"clock_out"`
+		LemburStart string `json:"lembur_start"`
+		LemburEnd   string `json:"lembur_end"`
+		Date        string `json:"date"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -344,6 +347,12 @@ func UpdateAttendanceRecord(c *gin.Context) {
 	}
 	if input.ClockOut != "" {
 		att.ClockOut = input.ClockOut
+	}
+	if input.LemburStart != "" {
+		att.LemburStart = input.LemburStart
+	}
+	if input.LemburEnd != "" {
+		att.LemburEnd = input.LemburEnd
 	}
 	if input.Date != "" {
 		att.Date = input.Date

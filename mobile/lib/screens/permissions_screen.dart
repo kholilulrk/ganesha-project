@@ -32,7 +32,22 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       _PermAction(value: 'manage', label: 'Kelola'),
     ]),
     _PermGroup(label: 'Pengguna', resource: 'users', actions: [
-      _PermAction(value: 'manage', label: 'Kelola'),
+      _PermAction(value: 'view', label: 'Lihat'),
+      _PermAction(value: 'create', label: 'Buat'),
+      _PermAction(value: 'edit', label: 'Edit'),
+      _PermAction(value: 'delete', label: 'Hapus'),
+    ]),
+    _PermGroup(label: 'Pengumuman', resource: 'pengumuman', actions: [
+      _PermAction(value: 'view', label: 'Lihat'),
+      _PermAction(value: 'create', label: 'Buat'),
+      _PermAction(value: 'edit', label: 'Edit'),
+      _PermAction(value: 'delete', label: 'Hapus'),
+    ]),
+    _PermGroup(label: 'Vendor', resource: 'vendor', actions: [
+      _PermAction(value: 'view', label: 'Lihat'),
+      _PermAction(value: 'create', label: 'Buat'),
+      _PermAction(value: 'edit', label: 'Edit'),
+      _PermAction(value: 'delete', label: 'Hapus'),
     ]),
     _PermGroup(label: 'Absensi', resource: 'absensi', actions: [
       _PermAction(value: 'view', label: 'Lihat Data'),
