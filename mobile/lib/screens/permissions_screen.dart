@@ -34,6 +34,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     _PermGroup(label: 'Pengguna', resource: 'users', actions: [
       _PermAction(value: 'manage', label: 'Kelola'),
     ]),
+    _PermGroup(label: 'Absensi', resource: 'absensi', actions: [
+      _PermAction(value: 'view', label: 'Lihat Data'),
+    ]),
   ];
 
   @override

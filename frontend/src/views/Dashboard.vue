@@ -36,6 +36,82 @@
       </div>
     </div>
 
+    <div v-if="!isSuperAdmin" class="attendance-card" :class="attendanceCardClass">
+      <div class="attendance-body">
+        <div class="attendance-icon">{{ attendanceIcon }}</div>
+        <div class="attendance-text">
+          <strong>{{ attendanceTitle }}</strong>
+          <span>{{ attendanceDesc }}</span>
+        </div>
+        <div class="attendance-actions" v-if="showAttendanceActions">
+          <button v-if="showHadirBtn" class="btn-attend hadir" :disabled="attLoading" @click="openHadirModal">Hadir</button>
+          <button v-if="showTidakHadirBtn" class="btn-attend tidak-hadir" :disabled="attLoading" @click="openTidakHadirModal">Tidak Hadir</button>
+          <button v-if="showMulaiLemburBtn" class="btn-attend lembur" :disabled="attLoading" @click="handleLemburStart">Mulai Lembur</button>
+          <button v-if="showAkhiriLemburBtn" class="btn-attend lembur-akhir" :disabled="attLoading" @click="handleLemburEnd">Akhiri Lembur</button>
+        </div>
+        <div v-if="attendanceStatus" class="attendance-status" :class="attendanceStatusClass">{{ attendanceStatus }}</div>
+      </div>
+    </div>
+
+    <!-- Modal Hadir -->
+    <transition name="modal-fade">
+      <div v-if="showHadirModal" class="modal-overlay" @click.self="showHadirModal = false">
+        <div class="modal-card modal-sm">
+          <div class="modal-header">
+            <h2>Absen Hadir</h2>
+            <button class="btn-close" @click="showHadirModal = false">✕</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-desc">Pilih lokasi kerja hari ini:</p>
+            <div class="location-options">
+              <button class="location-btn" :class="{ active: selectedLocation === 'kantor' }" @click="selectedLocation = 'kantor'">
+                <span class="loc-icon">🏢</span>
+                <span>Di Kantor</span>
+              </button>
+              <button class="location-btn" :class="{ active: selectedLocation === 'luar_kota' }" @click="selectedLocation = 'luar_kota'">
+                <span class="loc-icon">🚗</span>
+                <span>Luar Kota</span>
+              </button>
+            </div>
+            <div v-if="hadirError" class="error-banner">{{ hadirError }}</div>
+            <div class="form-actions">
+              <button class="btn-cancel" @click="showHadirModal = false">Batal</button>
+              <button class="btn-save" :disabled="attLoading" @click="handleHadir">
+                <span v-if="attLoading" class="spinner-sm" />
+                <span v-else>Konfirmasi Hadir</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal Tidak Hadir -->
+    <transition name="modal-fade">
+      <div v-if="showTidakHadirModal" class="modal-overlay" @click.self="showTidakHadirModal = false">
+        <div class="modal-card modal-sm">
+          <div class="modal-header">
+            <h2>Tidak Hadir</h2>
+            <button class="btn-close" @click="showTidakHadirModal = false">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Alasan Tidak Hadir</label>
+              <textarea v-model="tidakHadirReason" placeholder="Tuliskan alasan..." rows="3" class="form-input" />
+            </div>
+            <div v-if="tidakHadirError" class="error-banner">{{ tidakHadirError }}</div>
+            <div class="form-actions">
+              <button class="btn-cancel" @click="showTidakHadirModal = false">Batal</button>
+              <button class="btn-save" :disabled="attLoading || !tidakHadirReason.trim()" @click="handleTidakHadir">
+                <span v-if="attLoading" class="spinner-sm" />
+                <span v-else>Konfirmasi</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <transition name="modal-fade">
       <div v-if="showCreateForm" class="modal-overlay" @click.self="closeCreateForm">
         <div class="modal-card">
@@ -199,9 +275,13 @@ useHead({
 import { jobAPI } from '../api/job'
 import { userAPI } from '../api/user'
 import { documentAPI } from '../api/document'
+import { attendanceAPI } from '../api/attendance'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const perms = usePermissionStore()
+const auth = useAuthStore()
+const isSuperAdmin = computed(() => auth.user?.role === 'Super Admin')
 
 const canCreate = computed(() => perms.can('pekerjaan', 'create'))
 
@@ -212,6 +292,215 @@ const stats = ref({
   uncompleted_jobs: 0,
   recent_pending: [],
 })
+
+// Attendance
+const attendanceRecord = ref(null)
+const attLoading = ref(false)
+const showHadirModal = ref(false)
+const showTidakHadirModal = ref(false)
+const selectedLocation = ref('kantor')
+const tidakHadirReason = ref('')
+const hadirError = ref('')
+const tidakHadirError = ref('')
+
+const currentHour = ref(new Date().getHours())
+const currentMinute = ref(new Date().getMinutes())
+
+let attTimer = null
+
+function updateTime() {
+  const now = new Date()
+  currentHour.value = now.getHours()
+  currentMinute.value = now.getMinutes()
+}
+
+const isAttendanceTime = computed(() => {
+  const totalMin = currentHour.value * 60 + currentMinute.value
+  return totalMin >= 30 && currentHour.value < 17
+})
+
+const isOvertimeTime = computed(() => {
+  return currentHour.value >= 17 && currentHour.value < 24
+})
+
+const showAttendanceActions = computed(() => {
+  if (isOvertimeTime.value) {
+    if (!attendanceRecord.value) return false
+    if (attendanceRecord.value.type === 'tidak_hadir') return false
+    if (attendanceRecord.value.location === 'luar_kota') return false
+    if (attendanceRecord.value.type === 'lembur' && !attendanceRecord.value.clock_out) return true
+    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.clock_out) return false
+    return true
+  }
+  if (!attendanceRecord.value) return true
+  return false
+})
+
+const showHadirBtn = computed(() => {
+  if (isOvertimeTime.value) return false
+  return !attendanceRecord.value
+})
+
+const showTidakHadirBtn = computed(() => {
+  if (isOvertimeTime.value) return false
+  return !attendanceRecord.value
+})
+
+const showMulaiLemburBtn = computed(() => {
+  if (!isOvertimeTime.value) return false
+  if (!attendanceRecord.value) return false
+  if (attendanceRecord.value.type === 'tidak_hadir') return false
+  if (attendanceRecord.value.location === 'luar_kota') return false
+  return attendanceRecord.value.type !== 'lembur'
+})
+
+const showAkhiriLemburBtn = computed(() => {
+  if (!isOvertimeTime.value) return false
+  if (!attendanceRecord.value) return false
+  if (attendanceRecord.value.type !== 'lembur') return false
+  return !attendanceRecord.value.clock_out
+})
+
+const attendanceCardClass = computed(() => {
+  if (isOvertimeTime.value) return 'overtime'
+  if (attendanceRecord.value?.type === 'hadir' || attendanceRecord.value?.type === 'lembur') return 'hadir'
+  if (attendanceRecord.value?.type === 'tidak_hadir') return 'absent'
+  return ''
+})
+
+const attendanceIcon = computed(() => {
+  if (isOvertimeTime.value) return '🌙'
+  if (attendanceRecord.value?.type === 'hadir') return '✅'
+  if (attendanceRecord.value?.type === 'tidak_hadir') return '❌'
+  return '📋'
+})
+
+const attendanceTitle = computed(() => {
+  if (isOvertimeTime.value) return 'Lembur'
+  if (attendanceRecord.value?.type === 'hadir' && attendanceRecord.value?.location === 'luar_kota') return 'Hadir (Luar Kota)'
+  if (attendanceRecord.value?.type === 'hadir') return 'Sudah Absen Hadir'
+  if (attendanceRecord.value?.type === 'tidak_hadir') return 'Tidak Hadir'
+  return 'Absen Hari Ini'
+})
+
+const attendanceDesc = computed(() => {
+  if (isOvertimeTime.value) {
+    if (!attendanceRecord.value) return 'Belum absen hari ini'
+    if (attendanceRecord.value.type === 'tidak_hadir') return 'Tidak bisa lembur'
+    if (attendanceRecord.value.location === 'luar_kota') return 'Tidak bisa lembur (luar kota)'
+    if (attendanceRecord.value.type === 'lembur' && attendanceRecord.value.clock_out) {
+      const durasi = hitungDurasi(attendanceRecord.value.clock_in, attendanceRecord.value.clock_out)
+      return `Lembur selesai · ${durasi}`
+    }
+    if (attendanceRecord.value.type === 'lembur') return `Mulai ${attendanceRecord.value.clock_in}`
+    return `Absen ${attendanceRecord.value.clock_in} · Klik untuk lembur`
+  }
+  if (attendanceRecord.value?.type === 'hadir' && attendanceRecord.value?.clock_in) {
+    const loc = attendanceRecord.value.location === 'luar_kota' ? 'Luar Kota' : 'Kantor'
+    return `Jam ${attendanceRecord.value.clock_in} · ${loc}`
+  }
+  if (attendanceRecord.value?.type === 'tidak_hadir' && attendanceRecord.value?.reason) {
+    return attendanceRecord.value.reason
+  }
+  if (isAttendanceTime.value) return 'Klik Hadir atau Tidak Hadir'
+  if (currentHour.value < 17) return 'Waktu absen belum dimulai (00:30)'
+  return ''
+})
+
+const attendanceStatus = computed(() => {
+  if (isOvertimeTime.value && attendanceRecord.value?.type === 'lembur' && attendanceRecord.value?.clock_out) {
+    const durasi = hitungDurasi(attendanceRecord.value.clock_in, attendanceRecord.value.clock_out)
+    return `Durasi: ${durasi}`
+  }
+  return ''
+})
+
+const attendanceStatusClass = computed(() => {
+  return 'status-done'
+})
+
+function hitungDurasi(clockIn, clockOut) {
+  if (!clockIn || !clockOut) return '-'
+  const [h1, m1] = clockIn.split(':').map(Number)
+  const [h2, m2] = clockOut.split(':').map(Number)
+  let totalMenit = (h2 * 60 + m2) - (h1 * 60 + m1)
+  if (totalMenit < 0) totalMenit += 24 * 60
+  const jam = Math.floor(totalMenit / 60)
+  const menit = totalMenit % 60
+  return `${jam}j ${menit}m`
+}
+
+async function fetchTodayAttendance() {
+  try {
+    const res = await attendanceAPI.getToday()
+    attendanceRecord.value = res.data.attendance || null
+  } catch { /* ignore */ }
+}
+
+function openHadirModal() {
+  selectedLocation.value = 'kantor'
+  hadirError.value = ''
+  showHadirModal.value = true
+}
+
+function openTidakHadirModal() {
+  tidakHadirReason.value = ''
+  tidakHadirError.value = ''
+  showTidakHadirModal.value = true
+}
+
+async function handleHadir() {
+  attLoading.value = true
+  hadirError.value = ''
+  try {
+    const res = await attendanceAPI.hadir(selectedLocation.value)
+    attendanceRecord.value = res.data.attendance
+    showHadirModal.value = false
+  } catch (err) {
+    hadirError.value = err.response?.data?.error || 'Gagal absen'
+  } finally {
+    attLoading.value = false
+  }
+}
+
+async function handleTidakHadir() {
+  if (!tidakHadirReason.value.trim()) return
+  attLoading.value = true
+  tidakHadirError.value = ''
+  try {
+    const res = await attendanceAPI.tidakHadir(tidakHadirReason.value.trim())
+    attendanceRecord.value = res.data.attendance
+    showTidakHadirModal.value = false
+  } catch (err) {
+    tidakHadirError.value = err.response?.data?.error || 'Gagal absen'
+  } finally {
+    attLoading.value = false
+  }
+}
+
+async function handleLemburStart() {
+  attLoading.value = true
+  try {
+    const res = await attendanceAPI.lemburStart()
+    attendanceRecord.value = res.data.attendance
+  } catch (err) {
+    alert(err.response?.data?.error || 'Gagal mulai lembur')
+  } finally {
+    attLoading.value = false
+  }
+}
+
+async function handleLemburEnd() {
+  attLoading.value = true
+  try {
+    const res = await attendanceAPI.lemburEnd()
+    attendanceRecord.value = res.data.attendance
+  } catch (err) {
+    alert(err.response?.data?.error || 'Gagal akhiri lembur')
+  } finally {
+    attLoading.value = false
+  }
+}
 
 const showAnnouncementToast = ref(false)
 const latestAnnouncement = ref(null)
@@ -296,6 +585,8 @@ function checkNewAnnouncements() {
 
 onMounted(async () => {
   await perms.load()
+  updateTime()
+  attTimer = setInterval(updateTime, 30000)
   try {
     const res = await dashboardAPI.getStats()
     stats.value = res.data
@@ -305,6 +596,9 @@ onMounted(async () => {
     const res = await documentAPI.getAll()
     allDocuments.value = res.data.documents
   } catch { /* ignore */ }
+  if (!isSuperAdmin.value) {
+    fetchTodayAttendance()
+  }
 })
 
 function goToPekerjaan(status, share, checklistIncomplete) {
@@ -1015,6 +1309,10 @@ async function handleCreateJob() {
   margin-bottom: 12px;
 }
 
+.modal-body {
+  padding: 24px;
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;
@@ -1023,6 +1321,224 @@ async function handleCreateJob() {
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
+}
+
+/* Attendance Card */
+.attendance-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  transition: all 0.3s;
+}
+
+.attendance-card.hadir {
+  border-color: #51cf66;
+  background: rgba(81, 207, 102, 0.04);
+}
+
+.attendance-card.absent {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.04);
+}
+
+.attendance-card.overtime {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.attendance-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.attendance-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--hover-bg);
+  flex-shrink: 0;
+}
+
+.attendance-card.hadir .attendance-icon {
+  background: rgba(81, 207, 102, 0.15);
+}
+
+.attendance-card.absent .attendance-icon {
+  background: rgba(255, 107, 107, 0.15);
+}
+
+.attendance-card.overtime .attendance-icon {
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.attendance-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.attendance-text strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.attendance-text span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.attendance-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-attend {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btn-attend:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-attend.hadir {
+  background: linear-gradient(135deg, #51cf66, #2b8a3e);
+  color: #fff;
+}
+
+.btn-attend.hadir:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(81, 207, 102, 0.3);
+}
+
+.btn-attend.tidak-hadir {
+  background: linear-gradient(135deg, #ff6b6b, #c92a2a);
+  color: #fff;
+}
+
+.btn-attend.tidak-hadir:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-attend.lembur {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+}
+
+.btn-attend.lembur:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-attend.lembur-akhir {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.btn-attend.lembur-akhir:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.attendance-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.attendance-status.status-done {
+  background: rgba(81, 207, 102, 0.15);
+  color: #51cf66;
+}
+
+.modal-sm .modal-card {
+  max-width: 420px;
+}
+
+.modal-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.location-options {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.location-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.location-btn:hover {
+  border-color: #667eea;
+}
+
+.location-btn.active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.06);
+  color: #667eea;
+}
+
+.loc-icon {
+  font-size: 24px;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  font-size: 14px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
 @media (max-width: 768px) {

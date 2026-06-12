@@ -88,6 +88,13 @@ const permissionGroups = [
       { value: 'manage', label: 'Kelola' },
     ],
   },
+  {
+    label: 'Absensi',
+    resource: 'absensi',
+    actions: [
+      { value: 'view', label: 'Lihat Data' },
+    ],
+  },
 ]
 
 const currentPerms = computed(() => {

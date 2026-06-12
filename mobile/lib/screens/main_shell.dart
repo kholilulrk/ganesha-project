@@ -13,6 +13,7 @@ import 'permissions_screen.dart';
 import 'document_management_screen.dart';
 import 'monitoring_surat_screen.dart';
 import 'kelengkapan_dokumen_screen.dart';
+import 'attendance_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -102,6 +103,10 @@ class _MainShellState extends State<MainShell> {
       screenList.add(const MonitoringSuratScreen());
       titles.add('Surat');
       icons.add(Icons.description_rounded);
+
+      screenList.add(const AttendanceScreen());
+      titles.add('Absensi');
+      icons.add(Icons.fact_check_rounded);
     }
 
     if (isSuperAdmin) {

@@ -15,6 +15,7 @@ var DefaultPermissions = []Permission{
 	{Role: "Administrasi", Resource: "pekerjaan", Action: "edit"},
 	{Role: "Administrasi", Resource: "pekerjaan", Action: "delete"},
 	{Role: "Administrasi", Resource: "users", Action: "manage"},
+	{Role: "Administrasi", Resource: "absensi", Action: "view"},
 	{Role: "Teknisi", Resource: "pekerjaan", Action: "view"},
 	{Role: "Teknisi", Resource: "pekerjaan", Action: "edit"},
 	{Role: "Teknisi", Resource: "checklist", Action: "manage"},

@@ -140,7 +140,7 @@ func ResetDefaultPermissions(c *gin.Context) {
 }
 
 func parsePerm(p string) (string, string) {
-	for _, r := range []string{"pekerjaan", "checklist", "users"} {
+	for _, r := range []string{"pekerjaan", "checklist", "users", "absensi"} {
 		for _, a := range []string{"view", "create", "edit", "delete", "manage"} {
 			if p == r+"."+a {
 				return r, a

@@ -6,6 +6,8 @@ import '../providers/permission_provider.dart';
 import '../services/api_service.dart';
 import '../services/user_service.dart';
 import '../services/document_service.dart';
+import '../services/attendance_service.dart';
+import '../models/attendance.dart';
 import '../models/job.dart';
 import '../models/surat.dart';
 import '../models/user.dart';
@@ -27,11 +29,18 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   Timer? _timer;
 
+  Attendance? _attendance;
+  bool _attLoading = false;
+
   @override
   void initState() {
     super.initState();
     _loadStats();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _loadStats());
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _loadStats();
+      _checkTimeAndRefresh();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchAttendance());
   }
 
   @override
@@ -46,6 +55,32 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() => _stats = data);
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  bool get _isAttendanceTime {
+    final now = DateTime.now();
+    final totalMin = now.hour * 60 + now.minute;
+    return totalMin >= 30 && now.hour < 17;
+  }
+
+  bool get _isOvertimeTime {
+    final now = DateTime.now();
+    return now.hour >= 17 && now.hour < 24;
+  }
+
+  Future<void> _fetchAttendance() async {
+    final auth = context.read<AuthProvider>();
+    if (auth.user?.role == 'Super Admin') return;
+    final att = await AttendanceService.getToday();
+    if (mounted) setState(() => _attendance = att);
+  }
+
+  Future<void> _checkTimeAndRefresh() async {
+    final auth = context.read<AuthProvider>();
+    if (auth.user?.role == 'Super Admin') return;
+    if (_isOvertimeTime || _isAttendanceTime) {
+      await _fetchAttendance();
+    }
   }
 
   List<Surat> get _expiringSurats {
@@ -116,6 +151,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPendingTap: () => widget.onNavigateToPekerjaan?.call('pending'),
                 onProgressTap: () => widget.onNavigateToPekerjaan?.call('progres'),
                 onCompletedTap: () => widget.onNavigateToPekerjaan?.call('done'),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Attendance Card
+            if (!isSuperAdmin) ...[
+              FadeSlideIn(
+                child: _AttendanceCard(
+                  attendance: _attendance,
+                  loading: _attLoading,
+                  isAttendanceTime: _isAttendanceTime,
+                  isOvertimeTime: _isOvertimeTime,
+                  onHadir: _showHadirDialog,
+                  onTidakHadir: _showTidakHadirDialog,
+                  onLemburStart: _handleLemburStart,
+                  onLemburEnd: _handleLemburEnd,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -494,6 +546,145 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _showHadirDialog() async {
+    final location = await showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Absen Hadir', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text('Pilih lokasi kerja hari ini:', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _LocationOption(
+                        icon: Icons.business,
+                        label: 'Di Kantor',
+                        value: 'kantor',
+                        onTap: () => Navigator.pop(ctx, 'kantor'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _LocationOption(
+                        icon: Icons.directions_car,
+                        label: 'Luar Kota',
+                        value: 'luar_kota',
+                        onTap: () => Navigator.pop(ctx, 'luar_kota'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Batal'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (location == null) return;
+    setState(() => _attLoading = true);
+    try {
+      final att = await AttendanceService.hadir(location);
+      if (mounted) setState(() => _attendance = att);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _attLoading = false);
+    }
+  }
+
+  Future<void> _showTidakHadirDialog() async {
+    final reasonC = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Tidak Hadir', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonC,
+                decoration: const InputDecoration(
+                  labelText: 'Alasan Tidak Hadir',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, reasonC.text.trim()),
+                    child: const Text('Konfirmasi'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (result == null || result.isEmpty) return;
+    setState(() => _attLoading = true);
+    try {
+      final att = await AttendanceService.tidakHadir(result);
+      if (mounted) setState(() => _attendance = att);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _attLoading = false);
+    }
+  }
+
+  Future<void> _handleLemburStart() async {
+    setState(() => _attLoading = true);
+    try {
+      final att = await AttendanceService.lemburStart();
+      if (mounted) setState(() => _attendance = att);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _attLoading = false);
+    }
+  }
+
+  Future<void> _handleLemburEnd() async {
+    setState(() => _attLoading = true);
+    try {
+      final att = await AttendanceService.lemburEnd();
+      if (mounted) setState(() => _attendance = att);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _attLoading = false);
+    }
+  }
+
   void _showAnnouncementDetail(Announcement a) {
     showDialog(
       context: context,
@@ -668,6 +859,232 @@ class _ActionTile extends StatelessWidget {
         subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
         onTap: onTap,
+      ),
+    );
+  }
+}
+
+// Attendance Card
+class _AttendanceCard extends StatelessWidget {
+  final Attendance? attendance;
+  final bool loading;
+  final bool isAttendanceTime;
+  final bool isOvertimeTime;
+  final VoidCallback onHadir;
+  final VoidCallback onTidakHadir;
+  final VoidCallback onLemburStart;
+  final VoidCallback onLemburEnd;
+
+  const _AttendanceCard({
+    required this.attendance,
+    required this.loading,
+    required this.isAttendanceTime,
+    required this.isOvertimeTime,
+    required this.onHadir,
+    required this.onTidakHadir,
+    required this.onLemburStart,
+    required this.onLemburEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHadir = attendance?.isHadir == true;
+    final isTidakHadir = attendance?.isTidakHadir == true;
+    final isLembur = attendance?.isLembur == true;
+    final isLemburSelesai = attendance?.isLemburSelesai == true;
+    final isLuarKota = attendance?.isLuarKota == true;
+
+    Color cardColor;
+    IconData icon;
+    String title;
+    String subtitle;
+    List<Widget>? actions;
+
+    if (isOvertimeTime) {
+      cardColor = const Color(0xFFFFF8E1);
+      icon = Icons.nightlight_round;
+      if (attendance == null || isTidakHadir) {
+        title = 'Lembur';
+        subtitle = attendance == null ? 'Belum absen hari ini' : 'Tidak bisa lembur';
+        actions = null;
+      } else if (isLuarKota) {
+        title = 'Lembur';
+        subtitle = 'Tidak bisa lembur (luar kota)';
+        actions = null;
+      } else if (isLembur && isLemburSelesai) {
+        title = 'Lembur Selesai';
+        final durasi = _hitungDurasi(attendance!.clockIn!, attendance!.clockOut!);
+        subtitle = 'Durasi: $durasi';
+        actions = null;
+      } else if (isLembur) {
+        title = 'Sedang Lembur';
+        subtitle = 'Mulai ${attendance!.clockIn ?? "-"}';
+        actions = [
+          _ActionButton(label: 'Akhiri Lembur', color: const Color(0xFF4F46E5), onTap: onLemburEnd),
+        ];
+      } else if (isHadir) {
+        title = 'Lembur';
+        subtitle = 'Absen ${attendance!.clockIn ?? "-"} · Klik untuk lembur';
+        actions = [
+          _ActionButton(label: 'Mulai Lembur', color: const Color(0xFFF59E0B), onTap: onLemburStart),
+        ];
+      } else {
+        title = 'Lembur';
+        subtitle = '';
+        actions = null;
+      }
+    } else if (isHadir || isLembur) {
+      cardColor = const Color(0xFFF0FDF4);
+      icon = Icons.check_circle;
+      final loc = isLuarKota ? 'Luar Kota' : 'Kantor';
+      title = 'Sudah Absen Hadir';
+      subtitle = 'Jam ${attendance!.clockIn ?? "-"} · $loc';
+      actions = null;
+    } else if (isTidakHadir) {
+      cardColor = const Color(0xFFFEF2F2);
+      icon = Icons.cancel;
+      title = 'Tidak Hadir';
+      subtitle = attendance?.reason ?? '';
+      actions = null;
+    } else if (isAttendanceTime) {
+      cardColor = Colors.white;
+      icon = Icons.edit_note;
+      title = 'Absen Hari Ini';
+      subtitle = 'Klik Hadir atau Tidak Hadir';
+      actions = [
+        _ActionButton(label: 'Hadir', color: const Color(0xFF22C55E), onTap: onHadir),
+        const SizedBox(width: 8),
+        _ActionButton(label: 'Tidak Hadir', color: const Color(0xFFEF4444), onTap: onTidakHadir),
+      ];
+    } else {
+      cardColor = Colors.white;
+      icon = Icons.edit_note;
+      title = 'Absen Hari Ini';
+      subtitle = 'Waktu absen: 00:30 - 17:00';
+      actions = null;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cardColor == Colors.white ? Colors.grey.shade200 : cardColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: isHadir || isLembur
+                  ? const Color(0xFF22C55E).withOpacity(0.15)
+                  : isTidakHadir
+                      ? const Color(0xFFEF4444).withOpacity(0.15)
+                      : isOvertimeTime
+                          ? const Color(0xFFF59E0B).withOpacity(0.15)
+                          : const Color(0xFF4F46E5).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20,
+              color: isHadir || isLembur
+                  ? const Color(0xFF22C55E)
+                  : isTidakHadir
+                      ? const Color(0xFFEF4444)
+                      : isOvertimeTime
+                          ? const Color(0xFFF59E0B)
+                          : const Color(0xFF4F46E5),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                if (subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ),
+              ],
+            ),
+          ),
+          if (loading)
+            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+          else if (actions != null)
+            Row(mainAxisSize: MainAxisSize.min, children: actions),
+        ],
+      ),
+    );
+  }
+
+  String _hitungDurasi(String clockIn, String clockOut) {
+    try {
+      final parts1 = clockIn.split(':');
+      final parts2 = clockOut.split(':');
+      final h1 = int.parse(parts1[0]), m1 = int.parse(parts1[1]);
+      final h2 = int.parse(parts2[0]), m2 = int.parse(parts2[1]);
+      int total = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (total < 0) total += 24 * 60;
+      return '${total ~/ 60}j ${total % 60}m';
+    } catch (_) {
+      return '-';
+    }
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+}
+
+class _LocationOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  const _LocationOption({required this.icon, required this.label, required this.value, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: const Color(0xFF4F46E5)),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }
