@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/notification_api_service.dart';
@@ -13,11 +14,19 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   List<NotificationModel> _notifications = [];
   bool _loading = true;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -141,6 +150,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.check_circle_rounded;
       case 'announcement':
         return Icons.campaign_rounded;
+      case 'attendance_reminder':
+        return Icons.edit_note_rounded;
+      case 'overtime_reminder':
+        return Icons.nightlight_round;
       default:
         return Icons.notifications_rounded;
     }
