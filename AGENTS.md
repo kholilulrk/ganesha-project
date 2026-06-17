@@ -1,3 +1,7 @@
+# Mobile Android
+
+> Lokasi project mobile: `F:\Website\mobile\ganesha-mobile`
+
 # Status Fitur Mobile Android
 
 Semua fitur sudah diimplementasi di mobile. Tidak ada gap dengan web.
@@ -46,3 +50,26 @@ Semua fitur sudah diimplementasi di mobile. Tidak ada gap dengan web.
 1. Download Firebase Service Account JSON dari Firebase Console
 2. Simpan di server, set `FCM_SERVICE_ACCOUNT_PATH` di `.env.production`
 3. Build APK release (debug FCM mungkin terbatas)
+
+# Deployment Workflow
+
+> Hanya push project `F:\Website\ganesha-project` ke server. **Jangan upload folder mobile** ke server (berat).
+
+## Langkah deployment untuk update APK:
+
+1. **Update versi** di `pubspec.yaml` mobile dan `APP_LATEST_VERSION` di `.env.production`
+2. **Build APK** dari folder mobile lokal:
+   ```powershell
+   cd F:\Website\mobile\ganesha-mobile
+   flutter build apk --release
+   ```
+
+3. **Upload APK** ke server (file saja) — user copy & run sendiri:
+   ```powershell
+   scp F:\Website\mobile\ganesha-mobile\build\app\outputs\flutter-apk\app-release.apk rzl@203.194.115.28:/home/deploy/apps/ganesha-project/apk/app-release.apk
+   ```
+   > **Note**: Jika user server bukan `rzl`, ganti `rzl` dengan username yang sesuai.
+
+4. **Push `.env.production`** ke git, user pull di server (tidak perlu SCP env & restart dari sini)
+
+> Catatan: User server adalah `rzl`, folder APK di `/home/deploy/apps/ganesha-project/apk/`.
