@@ -298,16 +298,9 @@ func UploadChecklistImage(c *gin.Context) {
 	}
 
 	maxImages := 3
-	if role == "logistic" {
-		maxImages = 1
-	}
 
 	if len(existing) >= maxImages {
-		limit := "3"
-		if role == "logistic" {
-			limit = "1"
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Maksimal %s gambar", limit)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Maksimal %d gambar", maxImages)})
 		return
 	}
 
