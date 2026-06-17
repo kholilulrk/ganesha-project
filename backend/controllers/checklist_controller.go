@@ -284,7 +284,6 @@ func compressImage(path string) {
 
 func UploadChecklistImage(c *gin.Context) {
 	itemID := c.Param("itemId")
-	role := c.Query("role")
 
 	var item models.TaskChecklist
 	if err := models.DB.First(&item, itemID).Error; err != nil {
