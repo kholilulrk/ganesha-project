@@ -1,3 +1,39 @@
+# Infrastruktur
+
+## Cloudflare Tunnel
+
+Domain `ganesha-energy.my.id` di-manage via Cloudflare (nameserver: karsyn/lewis.ns.cloudflare.com).
+
+- **SSL/TLS mode**: Flexible (browser↔CF = HTTPS, CF↔server = HTTP)
+- **Tunnel**: Zero Trust Tunnel (`cloudflared`) sebagai systemd service — auto-start & auto-reconnect
+- **Tunnel pointing**: `https://ganesha-energy.my.id` → `http://localhost:8084`
+- **Port 8084 server**: Ditutup (UFW deny). Hanya Cloudflare yang bisa akses backend.
+- **APK download**: `https://ganesha-energy.my.id/apk/app-release.apk`
+
+### Config terkait
+
+| File | Nilai |
+|---|---|
+| `.env.production` | `APP_URL=https://ganesha-energy.my.id` |
+| `docker-compose.yml` | default `APP_URL` = `https://ganesha-energy.my.id` |
+| Mobile `api_service.dart` | `baseUrl = https://ganesha-energy.my.id/api` |
+| Mobile `baseUploadUrl` | `https://ganesha-energy.my.id` |
+
+### Cara restart setelah pull di server
+
+```bash
+cd /home/deploy/apps/ganesha-project
+git stash  # jika ada perubahan lokal di .env.production
+git pull
+docker compose down && docker compose up -d
+# tunnel cloudflared tetap jalan (systemd service)
+```
+
+### Tunnel ID
+
+`154626b4-aeda-41f2-ba7b-c18612ed9be1`
+Config file: `/etc/cloudflared/config.yml`
+
 # Mobile Android
 
 > Lokasi project mobile: `F:\Website\mobile\ganesha-mobile`
