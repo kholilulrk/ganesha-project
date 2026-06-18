@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"website-backend/middleware"
 	"website-backend/models"
 
 	"github.com/gin-gonic/gin"
@@ -96,8 +97,8 @@ func UpdateProfile(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 	role, _ := c.Get("role")
 	roleStr, _ := role.(string)
-	if roleStr != "Super Admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Hanya Super Admin yang dapat menambah pengguna"})
+	if !middleware.HasPermission(models.DB, roleStr, "users", "create") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak memiliki izin untuk menambah pengguna"})
 		return
 	}
 
@@ -154,8 +155,8 @@ func GetUsers(c *gin.Context) {
 func UpdateUser(c *gin.Context) {
 	role, _ := c.Get("role")
 	roleStr, _ := role.(string)
-	if roleStr != "Super Admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Hanya Super Admin yang dapat mengedit pengguna"})
+	if !middleware.HasPermission(models.DB, roleStr, "users", "edit") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak memiliki izin untuk mengedit pengguna"})
 		return
 	}
 
@@ -210,8 +211,8 @@ func UpdateUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	role, _ := c.Get("role")
 	roleStr, _ := role.(string)
-	if roleStr != "Super Admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Hanya Super Admin yang dapat menghapus pengguna"})
+	if !middleware.HasPermission(models.DB, roleStr, "users", "delete") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak memiliki izin untuk menghapus pengguna"})
 		return
 	}
 
