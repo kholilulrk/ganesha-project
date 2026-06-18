@@ -4,7 +4,7 @@ set -e
 echo "===== Ganesha Energi Deploy Script ====="
 echo ""
 
-IP="${1:-203.194.115.28}"
+IP="${1:-ganesha-energy.my.id}"
 USER="${2:-root}"
 DOCKER_DIR="/opt/ganesha"
 
@@ -47,7 +47,7 @@ ssh "$USER@$IP" << EOF
 
   echo ""
   echo "===== Deploy complete! ====="
-  echo "Frontend: http://$IP"
-  echo "Backend:  http://$IP/api"
-  echo "Health:   http://$IP/health"
+  echo "Frontend: http://$IP:8084"
+  echo "Backend:  http://$IP:8084/api"
+  echo "Health:   http://$IP:8084/health"
 EOF
