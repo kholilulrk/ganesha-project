@@ -27,7 +27,7 @@ Hasil: `mobile/build/app/outputs/flutter-apk/app-release.apk`
 ### 3. Upload APK ke server
 
 ```powershell
-scp F:\Website\mobile\ganesha-mobile\build\app\outputs\flutter-apk\app-release.apk deploy@203.194.115.28:/home/deploy/apps/ganesha-project/apk/app-release.apk
+scp F:\Website\mobile\ganesha-mobile\build\app\outputs\flutter-apk\app-release.apk rzl@203.194.115.28:/home/deploy/apps/ganesha-project/apk/app-release.apk
 ```
 
 ### 4. Update versi di .env.production
@@ -119,5 +119,5 @@ docker compose up -d --build
 ```
 
 APK diserve oleh Nginx di dalam frontend container (Docker) via `location /apk/`.
-URL akses publik: `http://203.194.115.28:8084/apk/app-release.apk`
+URL akses publik: `https://ganesha-energy.my.id/apk/app-release.apk`
 Tidak perlu install Nginx terpisah di server.
