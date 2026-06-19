@@ -245,12 +245,12 @@
     <div class="section">
       <h2>Pekerjaan Terbaru</h2>
       <div class="pending-list" v-if="stats.recent_pending?.length">
-        <div v-for="job in stats.recent_pending" :key="job.ID" class="pending-item" @click="goToPekerjaan()">
+        <div v-for="job in stats.recent_pending" :key="job.ID" class="pending-item" :class="'status-' + (job.status || 'pending')" @click="goToPekerjaan()">
           <div class="pending-info">
             <span class="pending-name">{{ job.name }}</span>
             <span class="pending-meta">{{ job.share }} · {{ formatDate(job.contract_date) }}</span>
           </div>
-          <span class="status-badge" :class="job.status">{{ job.status || 'pending' }}</span>
+          <span class="status-badge" :class="job.status || 'pending'">{{ job.status || 'pending' }}</span>
         </div>
       </div>
       <div v-else class="empty-section">
@@ -822,15 +822,40 @@ async function handleCreateJob() {
   color: var(--text-muted);
 }
 
-.pending-badge {
+.pending-item.status-pending {
+  border-left: 4px solid #ffc107;
+}
+
+.pending-item.status-progres {
+  border-left: 4px solid #667eea;
+}
+
+.pending-item.status-done {
+  border-left: 4px solid #51cf66;
+}
+
+.status-badge {
   padding: 3px 10px;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+.status-badge.pending {
   background: rgba(255, 193, 7, 0.15);
   color: #ffc107;
+}
+
+.status-badge.progres {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
+
+.status-badge.done {
+  background: rgba(81, 207, 102, 0.15);
+  color: #51cf66;
 }
 
 .empty-section {
