@@ -221,7 +221,7 @@ onUnmounted(() => {
 .company-page {
   --accent-1: #1E90FF;
   --accent-2: #EED202;
-  --accent-gradient: linear-gradient(135deg, #1E90FF, #EED202);
+  --accent-gradient: #1E90FF;
   --accent-warm: #EED202;
   --text-dark: #0f172a;
   --text-body: #334155;
@@ -386,7 +386,7 @@ onUnmounted(() => {
   height: 500px;
   top: -150px;
   right: -100px;
-  background: linear-gradient(135deg, #1E90FF, #EED202);
+  background: rgba(30, 144, 255, 0.08);
   animation-delay: 0s;
 }
 
@@ -395,7 +395,7 @@ onUnmounted(() => {
   height: 350px;
   bottom: -80px;
   left: -80px;
-  background: linear-gradient(135deg, #1E90FF, #87CEEB);
+  background: rgba(238, 210, 2, 0.06);
   animation-delay: -3s;
 }
 
@@ -404,7 +404,7 @@ onUnmounted(() => {
   height: 200px;
   top: 40%;
   left: 60%;
-  background: linear-gradient(135deg, #EED202, #FFA500);
+  background: rgba(30, 144, 255, 0.05);
   animation-delay: -5s;
   animation-duration: 12s;
 }
@@ -475,12 +475,13 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #1E90FF, #EED202);
+  background: #1E90FF;
   color: #fff;
   box-shadow: 0 4px 20px rgba(30, 144, 255, 0.4);
 }
 
 .btn-primary:hover {
+  background: #1873CC;
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(30, 144, 255, 0.5);
 }
@@ -545,7 +546,7 @@ onUnmounted(() => {
 .section-tag {
   display: inline-block;
   padding: 6px 16px;
-  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(238, 210, 2, 0.1));
+  background: rgba(30, 144, 255, 0.08);
   color: var(--accent-1);
   border-radius: 50px;
   font-size: 12px;
@@ -689,6 +690,7 @@ onUnmounted(() => {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: var(--shadow-sm);
   cursor: default;
+  border-top: 3px solid #1E90FF;
 }
 
 .service-card:hover {
@@ -714,7 +716,7 @@ onUnmounted(() => {
   width: 72px;
   height: 72px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(238, 210, 2, 0.1));
+  background: rgba(30, 144, 255, 0.08);
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -773,7 +775,8 @@ onUnmounted(() => {
 }
 
 .partner-card:hover {
-  border-color: rgba(30, 144, 255, 0.2);
+  border-color: #1E90FF;
+  border-width: 2px;
   background: var(--bg-white);
   box-shadow: var(--shadow-md);
   transform: translateY(-4px);
