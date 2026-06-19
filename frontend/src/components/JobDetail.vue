@@ -439,6 +439,7 @@ watch(() => props.visible, (v) => {
     if (hasTeknisi.value) loadItems('teknisi')
     if (hasLogistic.value) loadItems('logistic')
     loadComments()
+    jobAPI.touch(props.job?.ID).catch(() => {})
   }
 })
 
@@ -546,6 +547,7 @@ function closePreview() {
 }
 
 async function deleteImage(roleKey, itemId, filename) {
+  if (!confirm('Yakin ingin menghapus gambar ini?')) return
   try {
     await checklistAPI.deleteImage(props.job.ID, itemId, filename)
     await loadItems(roleKey)

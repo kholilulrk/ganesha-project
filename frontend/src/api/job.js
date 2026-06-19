@@ -22,6 +22,9 @@ export const jobAPI = {
   complete(id) {
     return api.put(`/jobs/${id}/complete`)
   },
+  touch(id) {
+    return api.patch(`/jobs/${id}/touch`)
+  },
   updateStatus(id, status) {
     return api.patch(`/jobs/${id}/status`, { status })
   },

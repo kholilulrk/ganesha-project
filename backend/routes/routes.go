@@ -55,6 +55,7 @@ func SetupRouter(r *gin.Engine) {
 			protected.DELETE("/jobs/:id", controllers.DeleteJob)
 			protected.POST("/jobs/:id/share-link", controllers.GenerateShareLink)
 			protected.PUT("/jobs/:id/complete", controllers.CompleteJob)
+			protected.PATCH("/jobs/:id/touch", controllers.TouchJob)
 			protected.GET("/surats", controllers.GetSurats)
 		protected.GET("/surats/expiring", controllers.GetExpiringSurats)
 		protected.GET("/surats/:id", controllers.GetSurat)

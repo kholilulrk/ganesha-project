@@ -491,8 +491,6 @@ async function deleteJob(id) {
 <style scoped>
 .pekerjaan-page {
   padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
   animation: fadeIn 0.4s ease;
 }
 

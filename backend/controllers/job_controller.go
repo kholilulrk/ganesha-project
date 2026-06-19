@@ -387,6 +387,17 @@ func CompleteJob(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"job": job})
 }
 
+func TouchJob(c *gin.Context) {
+	id := c.Param("id")
+	var job models.Job
+	if err := models.DB.First(&job, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+		return
+	}
+	models.DB.Model(&job).Update("updated_at", time.Now())
+	c.JSON(http.StatusOK, gin.H{"message": "Job touched"})
+}
+
 func DeleteJob(c *gin.Context) {
 	role, _ := c.Get("role")
 	roleStr, _ := role.(string)

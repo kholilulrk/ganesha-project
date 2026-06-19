@@ -6,6 +6,13 @@
     </div>
 
     <div class="stats-grid">
+      <div class="stat-card total" @click="goToPekerjaan()">
+        <div class="stat-icon">📊</div>
+        <div class="stat-body">
+          <span class="stat-value">{{ stats.total_jobs }}</span>
+          <span class="stat-label">Total Pekerjaan</span>
+        </div>
+      </div>
       <div class="stat-card pending" @click="goToPekerjaan('pending')">
         <div class="stat-icon">📋</div>
         <div class="stat-body">
@@ -13,25 +20,18 @@
           <span class="stat-label">Pekerjaan Pending</span>
         </div>
       </div>
-      <div class="stat-card teknisi" @click="goToPekerjaan('incomplete')">
+      <div class="stat-card progres" @click="goToPekerjaan('progres')">
         <div class="stat-icon">🔧</div>
         <div class="stat-body">
-          <span class="stat-value">{{ stats.uncompleted_jobs }}</span>
-          <span class="stat-label">Pekerjaan Belum Selesai</span>
+          <span class="stat-value">{{ stats.progres_jobs }}</span>
+          <span class="stat-label">Pekerjaan Progress</span>
         </div>
       </div>
-      <div class="stat-card logistic" @click="goToPekerjaan('', '', 'Logistic')">
-        <div class="stat-icon">📦</div>
+      <div class="stat-card selesai" @click="goToPekerjaan('done')">
+        <div class="stat-icon">✅</div>
         <div class="stat-body">
-          <span class="stat-value">{{ stats.uncompleted_logistic }}</span>
-          <span class="stat-label">Tugas Logistic Belum Selesai</span>
-        </div>
-      </div>
-      <div v-if="canCreate" class="stat-card add" @click="openCreateForm">
-        <div class="stat-icon">➕</div>
-        <div class="stat-body">
-          <span class="stat-value">Baru</span>
-          <span class="stat-label">Buat Pekerjaan</span>
+          <span class="stat-value">{{ stats.completed_jobs }}</span>
+          <span class="stat-label">Pekerjaan Selesai</span>
         </div>
       </div>
     </div>
@@ -243,18 +243,18 @@
     </div>
 
     <div class="section">
-      <h2>Pekerjaan Pending Terbaru</h2>
+      <h2>Pekerjaan Terbaru</h2>
       <div class="pending-list" v-if="stats.recent_pending?.length">
-        <div v-for="job in stats.recent_pending" :key="job.ID" class="pending-item" @click="goToPekerjaan('pending')">
+        <div v-for="job in stats.recent_pending" :key="job.ID" class="pending-item" @click="goToPekerjaan()">
           <div class="pending-info">
             <span class="pending-name">{{ job.name }}</span>
             <span class="pending-meta">{{ job.share }} · {{ formatDate(job.contract_date) }}</span>
           </div>
-          <span class="pending-badge">Pending</span>
+          <span class="status-badge" :class="job.status">{{ job.status || 'pending' }}</span>
         </div>
       </div>
       <div v-else class="empty-section">
-        <p>Tidak ada pekerjaan pending</p>
+        <p>Tidak ada pekerjaan</p>
       </div>
     </div>
   </div>
@@ -735,16 +735,6 @@ async function handleCreateJob() {
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
-.stat-card.add {
-  cursor: pointer;
-  border-style: dashed;
-  border-color: var(--accent-primary, #667eea);
-}
-
-.stat-card.add:hover {
-  background: rgba(102, 126, 234, 0.06);
-}
-
 .stat-icon {
   font-size: 28px;
   width: 48px;
@@ -756,10 +746,10 @@ async function handleCreateJob() {
   flex-shrink: 0;
 }
 
+.stat-card.total .stat-icon { background: rgba(102, 126, 234, 0.15); }
 .stat-card.pending .stat-icon { background: rgba(255, 193, 7, 0.15); }
-.stat-card.teknisi .stat-icon { background: rgba(102, 126, 234, 0.15); }
-.stat-card.logistic .stat-icon { background: rgba(81, 207, 102, 0.15); }
-.stat-card.add .stat-icon { background: rgba(102, 126, 234, 0.1); }
+.stat-card.progres .stat-icon { background: rgba(245, 158, 11, 0.15); }
+.stat-card.selesai .stat-icon { background: rgba(81, 207, 102, 0.15); }
 
 .stat-body {
   display: flex;
@@ -772,10 +762,6 @@ async function handleCreateJob() {
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
-}
-
-.stat-card.add .stat-value {
-  font-size: 18px;
 }
 
 .stat-label {
