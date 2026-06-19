@@ -20,8 +20,15 @@
           <input v-model="form.tagline" type="text" />
         </div>
         <div class="form-group full">
-          <label>Hero Image (URL)</label>
-          <input v-model="form.hero_image" type="text" placeholder="https://..." />
+          <label>Hero Image</label>
+          <div class="file-upload-row">
+            <input ref="heroFileInput" type="file" accept="image/*" class="hidden-input" @change="onHeroFileChange" />
+            <button type="button" class="file-upload-btn" @click="$refs.heroFileInput.click()" :disabled="uploadingHero">
+              <span v-if="uploadingHero" class="spinner-sm" />
+              <span v-else>Pilih Gambar</span>
+            </button>
+            <img v-if="form.hero_image" :src="imgUrl(form.hero_image)" class="file-preview" />
+          </div>
         </div>
         <div class="form-group full">
           <label>Judul Tentang Kami</label>
@@ -32,8 +39,15 @@
           <textarea v-model="form.about_desc" rows="4"></textarea>
         </div>
         <div class="form-group full">
-          <label>Gambar Tentang Kami (URL)</label>
-          <input v-model="form.about_image" type="text" placeholder="https://..." />
+          <label>Gambar Tentang Kami</label>
+          <div class="file-upload-row">
+            <input ref="aboutFileInput" type="file" accept="image/*" class="hidden-input" @change="onAboutFileChange" />
+            <button type="button" class="file-upload-btn" @click="$refs.aboutFileInput.click()" :disabled="uploadingAbout">
+              <span v-if="uploadingAbout" class="spinner-sm" />
+              <span v-else>Pilih Gambar</span>
+            </button>
+            <img v-if="form.about_image" :src="imgUrl(form.about_image)" class="file-preview" />
+          </div>
         </div>
       </div>
       <button class="btn-save" :disabled="saving" @click="saveProfile">
@@ -164,6 +178,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { companyAPI } from '../api/company'
+import api from '../api/client'
 
 useHead({ title: 'Kelola Company Profile' })
 
@@ -173,6 +188,10 @@ const partners = ref([])
 const error = ref('')
 const success = ref('')
 const saving = ref(false)
+const uploadingHero = ref(false)
+const uploadingAbout = ref(false)
+const heroFileInput = ref(null)
+const aboutFileInput = ref(null)
 
 const form = reactive({
   company_name: '',
@@ -182,6 +201,46 @@ const form = reactive({
   about_desc: '',
   about_image: '',
 })
+
+function imgUrl(val) {
+  if (!val) return ''
+  const path = val.replace(/\\/g, '/')
+  if (path.startsWith('uploads/')) return '/' + path
+  return val
+}
+
+async function uploadFile(file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await api.post('/upload', fd)
+  return res.data.path
+}
+
+async function onHeroFileChange(e) {
+  const f = e.target.files[0]
+  if (!f) return
+  uploadingHero.value = true
+  try {
+    form.hero_image = await uploadFile(f)
+  } catch (err) {
+    error.value = 'Gagal upload hero image: ' + (err.response?.data?.error || err.message)
+  } finally {
+    uploadingHero.value = false
+  }
+}
+
+async function onAboutFileChange(e) {
+  const f = e.target.files[0]
+  if (!f) return
+  uploadingAbout.value = true
+  try {
+    form.about_image = await uploadFile(f)
+  } catch (err) {
+    error.value = 'Gagal upload about image: ' + (err.response?.data?.error || err.message)
+  } finally {
+    uploadingAbout.value = false
+  }
+}
 
 // Service modal
 const showServiceModal = ref(false)
@@ -351,6 +410,49 @@ onMounted(loadProfile)
 
 .section-header h2 {
   margin-bottom: 0;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.file-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.file-upload-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-upload-btn:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.file-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-preview {
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--card-border);
 }
 
 .form-grid {

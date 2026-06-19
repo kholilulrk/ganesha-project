@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,13 +19,19 @@ func UploadFile(c *gin.Context) {
 		return
 	}
 
-	ext := filepath.Ext(file.Filename)
-	if ext != ".pdf" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Only PDF files are allowed"})
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	imageExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true}
+
+	var uploadDir string
+	if ext == ".pdf" {
+		uploadDir = "uploads/spektek"
+	} else if imageExts[ext] {
+		uploadDir = "uploads/company"
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only PDF and image files (jpg, png, gif, webp) are allowed"})
 		return
 	}
 
-	uploadDir := "uploads/spektek"
 	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
 		return

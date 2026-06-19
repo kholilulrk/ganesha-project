@@ -24,7 +24,7 @@
               <p>{{ profile.about_desc }}</p>
             </div>
             <div v-if="profile.about_image" class="about-image">
-              <img :src="profile.about_image" :alt="profile.company_name" />
+              <img :src="imgUrl(profile.about_image)" :alt="profile.company_name" />
             </div>
           </div>
         </div>
@@ -51,7 +51,7 @@
           <div class="partners-grid">
             <div v-for="p in profile.partners" :key="p.ID" class="partner-card">
               <div v-if="p.logo" class="partner-logo">
-                <img :src="p.logo" :alt="p.name" />
+                <img :src="imgUrl(p.logo)" :alt="p.name" />
               </div>
               <h3>{{ p.name }}</h3>
               <p>{{ p.description }}</p>
@@ -76,9 +76,16 @@ useHead({
 const profile = ref(null)
 const loading = ref(true)
 
+function imgUrl(val) {
+  if (!val) return ''
+  const path = val.replace(/\\/g, '/')
+  if (path.startsWith('uploads/')) return '/' + path
+  return val
+}
+
 const heroStyle = computed(() => {
   if (!profile.value?.hero_image) return {}
-  return { backgroundImage: `url(${profile.value.hero_image})` }
+  return { backgroundImage: `url(${imgUrl(profile.value.hero_image)})` }
 })
 
 onMounted(async () => {
