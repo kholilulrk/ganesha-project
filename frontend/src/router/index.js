@@ -19,6 +19,8 @@ import ActivityLog from '../views/ActivityLog.vue'
 import Vendor from '../views/Vendor.vue'
 import Pengumuman from '../views/Pengumuman.vue'
 import DataAbsensi from '../views/DataAbsensi.vue'
+import CompanyProfile from '../views/CompanyProfile.vue'
+import CompanyManage from '../views/CompanyManage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -41,6 +43,8 @@ const routes = [
   { path: '/vendor', name: 'Vendor', component: Vendor, meta: { requiresAuth: true } },
   { path: '/pengumuman', name: 'Pengumuman', component: Pengumuman, meta: { requiresAuth: true } },
   { path: '/absensi', name: 'DataAbsensi', component: DataAbsensi, meta: { requiresAuth: true } },
+  { path: '/company', name: 'CompanyProfile', component: CompanyProfile, meta: { public: true } },
+  { path: '/company/manage', name: 'CompanyManage', component: CompanyManage, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

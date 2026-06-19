@@ -20,6 +20,14 @@
         <span class="nav-icon">📊</span>
         <span v-if="!collapsed">Dashboard</span>
       </router-link>
+      <router-link to="/company" class="nav-item" active-class="active">
+        <span class="nav-icon">🏢</span>
+        <span v-if="!collapsed">Company Profile</span>
+      </router-link>
+      <router-link v-if="perms.can('company', 'manage')" to="/company/manage" class="nav-item" active-class="active">
+        <span class="nav-icon">⚙️</span>
+        <span v-if="!collapsed">Kelola Profile</span>
+      </router-link>
       <div v-if="isLimitedRole" class="nav-item nav-parent" :class="{ active: pekerjaanOpen }" @click="pekerjaanOpen = !pekerjaanOpen">
         <span class="nav-icon">📋</span>
         <span v-if="!collapsed">Pekerjaan</span>

@@ -26,6 +26,8 @@ func SetupRouter(r *gin.Engine) {
 			shared.PUT("/:token/checklist/:itemId/selesai", controllers.SetSharedItemSelesai)
 		}
 
+		api.GET("/company", controllers.GetCompanyProfile)
+
 		public := api.Group("/fcm")
 		{
 			public.GET("/test/:userId", controllers.TestFCMPush)
@@ -121,6 +123,13 @@ func SetupRouter(r *gin.Engine) {
 			protected.POST("/jobs/:id/checklist/:itemId/images", controllers.UploadChecklistImage)
 			protected.DELETE("/jobs/:id/checklist/:itemId/images", controllers.DeleteChecklistImage)
 			protected.DELETE("/jobs/:id/checklist/:itemId", controllers.DeleteChecklistItem)
+			protected.PUT("/company", controllers.UpdateCompanyProfile)
+			protected.POST("/company/services", controllers.CreateCompanyService)
+			protected.PUT("/company/services/:id", controllers.UpdateCompanyService)
+			protected.DELETE("/company/services/:id", controllers.DeleteCompanyService)
+			protected.POST("/company/partners", controllers.CreateCompanyPartner)
+			protected.PUT("/company/partners/:id", controllers.UpdateCompanyPartner)
+			protected.DELETE("/company/partners/:id", controllers.DeleteCompanyPartner)
 		}
 
 		jobDocs := api.Group("/jobs/:id")

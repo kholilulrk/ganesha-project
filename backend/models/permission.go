@@ -32,6 +32,7 @@ var DefaultPermissions = []Permission{
 	{Role: "Teknisi", Resource: "checklist", Action: "manage"},
 	{Role: "Logistic", Resource: "pekerjaan", Action: "view"},
 	{Role: "Logistic", Resource: "checklist", Action: "manage"},
+	{Role: "Administrasi", Resource: "company", Action: "manage"},
 }
 
 func SeedPermissions(db *gorm.DB) error {
