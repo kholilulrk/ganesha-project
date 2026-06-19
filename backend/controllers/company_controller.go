@@ -18,8 +18,13 @@ func GetCompanyProfile(c *gin.Context) {
 		return db.Order("sort_order ASC")
 	}).First(&profile)
 	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Company profile not found"})
-		return
+		profile = models.CompanyProfile{
+			CompanyName: "Perusahaan Saya",
+			Tagline:     "Tagline perusahaan",
+			AboutTitle:  "Tentang Kami",
+			AboutDesc:   "Deskripsi perusahaan...",
+		}
+		models.DB.Create(&profile)
 	}
 	c.JSON(http.StatusOK, gin.H{"profile": profile})
 }

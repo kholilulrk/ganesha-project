@@ -62,7 +62,7 @@ const roleRestricted = (path) => {
   if (path.startsWith('/pengumuman')) {
     return ['Super Admin', 'Administrasi']
   }
-  if (path.startsWith('/kelengkapan-dokumen') || path.startsWith('/monitoring-surat') || path.startsWith('/sph') || path.startsWith('/vendor') || path.startsWith('/absensi')) {
+  if (path.startsWith('/kelengkapan-dokumen') || path.startsWith('/monitoring-surat') || path.startsWith('/sph') || path.startsWith('/vendor') || path.startsWith('/absensi') || path.startsWith('/company/manage')) {
     return ['Super Admin', 'Administrasi']
   }
   return null
