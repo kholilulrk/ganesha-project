@@ -219,10 +219,10 @@ onUnmounted(() => {
 }
 
 .company-page {
-  --accent-1: #0ea5e9;
-  --accent-2: #6366f1;
-  --accent-gradient: linear-gradient(135deg, #0ea5e9, #6366f1);
-  --accent-warm: #f59e0b;
+  --accent-1: #1E90FF;
+  --accent-2: #EED202;
+  --accent-gradient: linear-gradient(135deg, #1E90FF, #EED202);
+  --accent-warm: #EED202;
   --text-dark: #0f172a;
   --text-body: #334155;
   --text-light: #64748b;
@@ -386,7 +386,7 @@ onUnmounted(() => {
   height: 500px;
   top: -150px;
   right: -100px;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, #1E90FF, #EED202);
   animation-delay: 0s;
 }
 
@@ -395,7 +395,7 @@ onUnmounted(() => {
   height: 350px;
   bottom: -80px;
   left: -80px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: linear-gradient(135deg, #1E90FF, #87CEEB);
   animation-delay: -3s;
 }
 
@@ -404,7 +404,7 @@ onUnmounted(() => {
   height: 200px;
   top: 40%;
   left: 60%;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #EED202, #FFA500);
   animation-delay: -5s;
   animation-duration: 12s;
 }
@@ -475,14 +475,14 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, #1E90FF, #EED202);
   color: #fff;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 8px 30px rgba(30, 144, 255, 0.5);
 }
 
 .btn-outline {
@@ -545,7 +545,7 @@ onUnmounted(() => {
 .section-tag {
   display: inline-block;
   padding: 6px 16px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(99, 102, 241, 0.1));
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(238, 210, 2, 0.1));
   color: var(--accent-1);
   border-radius: 50px;
   font-size: 12px;
@@ -581,6 +581,40 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: 64px;
   align-items: center;
+}
+
+.about-text {
+  position: relative;
+  overflow: hidden;
+}
+
+.about-text::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 28px,
+      rgba(30, 144, 255, 0.06) 28px,
+      rgba(30, 144, 255, 0.06) 29px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(30, 144, 255, 0.04) 40px,
+      rgba(30, 144, 255, 0.04) 41px
+    );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: var(--radius-lg);
+}
+
+.about-text > * {
+  position: relative;
+  z-index: 1;
 }
 
 .about-text h2 {
@@ -627,7 +661,7 @@ onUnmounted(() => {
   height: 100%;
   top: 20px;
   left: 20px;
-  border: 3px solid var(--accent-1);
+  border: 3px solid #1E90FF;
   border-radius: var(--radius-lg);
   z-index: 1;
   opacity: 0.3;
@@ -680,7 +714,7 @@ onUnmounted(() => {
   width: 72px;
   height: 72px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(99, 102, 241, 0.1));
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(238, 210, 2, 0.1));
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -691,7 +725,7 @@ onUnmounted(() => {
 .service-card:hover .service-icon-wrapper {
   background: var(--accent-gradient);
   transform: scale(1.1) rotate(-5deg);
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 8px 24px rgba(30, 144, 255, 0.3);
 }
 
 .service-icon {
@@ -739,7 +773,7 @@ onUnmounted(() => {
 }
 
 .partner-card:hover {
-  border-color: rgba(14, 165, 233, 0.2);
+  border-color: rgba(30, 144, 255, 0.2);
   background: var(--bg-white);
   box-shadow: var(--shadow-md);
   transform: translateY(-4px);
@@ -794,12 +828,12 @@ onUnmounted(() => {
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 16px rgba(30, 144, 255, 0.3);
 }
 
 .partner-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 24px rgba(30, 144, 255, 0.4);
 }
 
 /* ===== FOOTER ===== */
@@ -813,6 +847,10 @@ onUnmounted(() => {
 }
 
 /* ===== RESPONSIVE ===== */
+
+#about, #services, #partners {
+  scroll-margin-top: 80px;
+}
 
 @media (max-width: 768px) {
   .section {
@@ -856,5 +894,11 @@ onUnmounted(() => {
   .partners-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+</style>
+
+<style>
+html {
+  scroll-behavior: smooth;
 }
 </style>
