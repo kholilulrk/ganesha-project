@@ -95,11 +95,18 @@ func CreateCompanyService(c *gin.Context) {
 		return
 	}
 
+	var profile models.CompanyProfile
+	if err := models.DB.First(&profile).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Company profile not found"})
+		return
+	}
+
 	service := models.CompanyService{
-		Title:       input.Title,
-		Description: input.Description,
-		Icon:        input.Icon,
-		SortOrder:   input.SortOrder,
+		CompanyProfileID: profile.ID,
+		Title:            input.Title,
+		Description:      input.Description,
+		Icon:             input.Icon,
+		SortOrder:        input.SortOrder,
 	}
 	if err := models.DB.Create(&service).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -182,12 +189,19 @@ func CreateCompanyPartner(c *gin.Context) {
 		return
 	}
 
+	var profile models.CompanyProfile
+	if err := models.DB.First(&profile).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Company profile not found"})
+		return
+	}
+
 	partner := models.CompanyPartner{
-		Name:        input.Name,
-		Logo:        input.Logo,
-		Description: input.Description,
-		Website:     input.Website,
-		SortOrder:   input.SortOrder,
+		CompanyProfileID: profile.ID,
+		Name:             input.Name,
+		Logo:             input.Logo,
+		Description:      input.Description,
+		Website:          input.Website,
+		SortOrder:        input.SortOrder,
 	}
 	if err := models.DB.Create(&partner).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
