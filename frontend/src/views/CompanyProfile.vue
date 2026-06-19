@@ -136,7 +136,17 @@ const heroStyle = computed(() => {
   return { backgroundImage: `url(${imgUrl(profile.value.hero_image)})` }
 })
 
+function revealVisible() {
+  document.querySelectorAll('.reveal').forEach((el) => {
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible')
+    }
+  })
+}
+
 function initReveal() {
+  revealVisible()
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -146,9 +156,12 @@ function initReveal() {
         }
       })
     },
-    { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+    { threshold: 0.1 }
   )
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
+  document.querySelectorAll('.reveal:not(.visible)').forEach((el) => observer.observe(el))
+  setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.visible)').forEach((el) => el.classList.add('visible'))
+  }, 3000)
 }
 
 onMounted(async () => {
