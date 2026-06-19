@@ -40,6 +40,7 @@ func UpdateCompanyProfile(c *gin.Context) {
 	var input struct {
 		CompanyName string `json:"company_name"`
 		Tagline     string `json:"tagline"`
+		Logo        string `json:"logo"`
 		HeroImage   string `json:"hero_image"`
 		AboutTitle  string `json:"about_title"`
 		AboutDesc   string `json:"about_desc"`
@@ -56,6 +57,7 @@ func UpdateCompanyProfile(c *gin.Context) {
 		profile = models.CompanyProfile{
 			CompanyName: input.CompanyName,
 			Tagline:     input.Tagline,
+			Logo:        input.Logo,
 			HeroImage:   input.HeroImage,
 			AboutTitle:  input.AboutTitle,
 			AboutDesc:   input.AboutDesc,
@@ -65,6 +67,7 @@ func UpdateCompanyProfile(c *gin.Context) {
 	} else {
 		profile.CompanyName = input.CompanyName
 		profile.Tagline = input.Tagline
+		profile.Logo = input.Logo
 		profile.HeroImage = input.HeroImage
 		profile.AboutTitle = input.AboutTitle
 		profile.AboutDesc = input.AboutDesc

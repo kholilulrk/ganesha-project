@@ -8,6 +8,19 @@
       <p>Belum ada data profile perusahaan.</p>
     </div>
     <template v-else>
+      <nav class="navbar">
+        <div class="nav-inner">
+          <a href="#" class="nav-brand">
+            <img v-if="profile.logo" :src="imgUrl(profile.logo)" :alt="profile.company_name" class="nav-logo" />
+            <span v-else class="nav-brand-text">{{ profile.company_name }}</span>
+          </a>
+          <div class="nav-links">
+            <a href="#about" class="nav-link">Tentang</a>
+            <a href="#services" class="nav-link">Layanan</a>
+            <a href="#partners" class="nav-link">Mitra</a>
+          </div>
+        </div>
+      </nav>
       <section class="hero" :style="heroStyle">
         <div class="hero-overlay"></div>
         <div class="hero-shapes">
@@ -243,6 +256,67 @@ onUnmounted(() => {
   font-size: 18px;
 }
 
+/* ===== NAVBAR ===== */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.6s ease;
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.nav-brand {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav-brand-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-body);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--accent-1);
+}
+
+/* ===== REVEAL ANIMATION ===== */
+
 .reveal {
   opacity: 0;
   transform: translateY(40px);
@@ -259,6 +333,7 @@ onUnmounted(() => {
 .hero {
   position: relative;
   min-height: 100vh;
+  padding-top: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,6 +583,7 @@ onUnmounted(() => {
   line-height: 1.9;
   color: var(--text-body);
   white-space: pre-line;
+  text-align: justify;
 }
 
 .about-image-wrapper {

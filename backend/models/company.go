@@ -8,6 +8,7 @@ type CompanyProfile struct {
 	gorm.Model
 	CompanyName    string `json:"company_name" gorm:"not null"`
 	Tagline        string `json:"tagline"`
+	Logo           string `json:"logo"`
 	HeroImage      string `json:"hero_image"`
 	AboutTitle     string `json:"about_title"`
 	AboutDesc      string `json:"about_desc" gorm:"type:text"`

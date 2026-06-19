@@ -20,6 +20,17 @@
           <input v-model="form.tagline" type="text" />
         </div>
         <div class="form-group full">
+          <label>Logo Perusahaan</label>
+          <div class="file-upload-row">
+            <input ref="logoFileInput" type="file" accept="image/*" class="hidden-input" @change="onLogoFileChange" />
+            <button type="button" class="file-upload-btn" @click="$refs.logoFileInput.click()" :disabled="uploadingLogo">
+              <span v-if="uploadingLogo" class="spinner-sm" />
+              <span v-else>Pilih Logo</span>
+            </button>
+            <img v-if="form.logo" :src="imgUrl(form.logo)" class="file-preview file-preview-logo" />
+          </div>
+        </div>
+        <div class="form-group full">
           <label>Hero Image</label>
           <div class="file-upload-row">
             <input ref="heroFileInput" type="file" accept="image/*" class="hidden-input" @change="onHeroFileChange" />
@@ -190,12 +201,15 @@ const success = ref('')
 const saving = ref(false)
 const uploadingHero = ref(false)
 const uploadingAbout = ref(false)
+const uploadingLogo = ref(false)
 const heroFileInput = ref(null)
 const aboutFileInput = ref(null)
+const logoFileInput = ref(null)
 
 const form = reactive({
   company_name: '',
   tagline: '',
+  logo: '',
   hero_image: '',
   about_title: '',
   about_desc: '',
@@ -242,6 +256,19 @@ async function onAboutFileChange(e) {
   }
 }
 
+async function onLogoFileChange(e) {
+  const f = e.target.files[0]
+  if (!f) return
+  uploadingLogo.value = true
+  try {
+    form.logo = await uploadFile(f)
+  } catch (err) {
+    error.value = 'Gagal upload logo: ' + (err.response?.data?.error || err.message)
+  } finally {
+    uploadingLogo.value = false
+  }
+}
+
 // Service modal
 const showServiceModal = ref(false)
 const editingService = ref(null)
@@ -261,6 +288,7 @@ async function loadProfile() {
     const p = res.data.profile
     form.company_name = p.company_name || ''
     form.tagline = p.tagline || ''
+    form.logo = p.logo || ''
     form.hero_image = p.hero_image || ''
     form.about_title = p.about_title || ''
     form.about_desc = p.about_desc || ''
@@ -453,6 +481,12 @@ onMounted(loadProfile)
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid var(--card-border);
+}
+
+.file-preview-logo {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
 }
 
 .form-grid {
