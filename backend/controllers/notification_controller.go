@@ -24,9 +24,14 @@ func RegisterFCMToken(c *gin.Context) {
 	}
 
 	var existing models.FCMToken
-	result := models.DB.Where("user_id = ? AND token = ?", currentUserID, input.Token).First(&existing)
+	result := models.DB.Where("token = ?", input.Token).First(&existing)
 	if result.Error == nil {
-		c.JSON(http.StatusOK, gin.H{"message": "Token already registered"})
+		if existing.UserID == currentUserID {
+			c.JSON(http.StatusOK, gin.H{"message": "Token already registered"})
+			return
+		}
+		models.DB.Model(&existing).Update("user_id", currentUserID)
+		c.JSON(http.StatusOK, gin.H{"message": "Token reassigned"})
 		return
 	}
 
